@@ -52,6 +52,12 @@ export default function HomeScreen() {
         ))}
 
       <View style={{ height: 20 }} />
+        <Button
+          title="Agregar mascota"
+          onPress={() => router.push("/pet/create")}
+        />
+
+      <View style={{ height: 12 }} />
 
       <Button title="Cerrar sesión" onPress={signOut} />
     </View>
