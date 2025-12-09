@@ -1,19 +1,19 @@
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuthStore } from '@/store/auth';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-useEffect(() => {
-  if (user) {
-    router.replace('/');
-  }
-}, [user]);
+  useEffect(() => {
+    if (user) {
+      router.replace('/');
+    }
+  }, [user]);
 
   const handleLogin = async () => {
     try {

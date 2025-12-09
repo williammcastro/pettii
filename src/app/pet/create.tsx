@@ -1,13 +1,13 @@
 import { useAddPet } from "@/features/pets/hooks";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuthStore } from "@/store/auth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function CreatePetScreen() {
   const router = useRouter();
-  const { user } = useAuth();
-const { mutateAsync, isPending } = useAddPet();
+  const { user } = useAuthStore();
+  const { mutateAsync, isPending } = useAddPet();
 
   const [name, setName] = useState("");
   const [species, setSpecies] = useState("");

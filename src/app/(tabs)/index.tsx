@@ -1,11 +1,12 @@
 import { usePets } from "@/features/pets/hooks";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuthStore } from "@/store/auth";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Button, Text, View } from "react-native";
 
 export default function HomeScreen() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useAuthStore();
+  const userId = user?.id;
 
   // Redirección si no hay usuario
   useEffect(() => {
@@ -14,14 +15,14 @@ export default function HomeScreen() {
     }
   }, [loading, user]);
 
-  // Mientras carga la sesión o no hay usuario, no renderizamos nada
-  if (loading || !user) return null;
-
-  const { data: pets, isLoading } = usePets(user.id);
+  const { data: pets, isLoading } = usePets(userId, !loading);
   const safePets = pets ?? []; // 👈 siempre es un array
 
+  // Mientras carga la sesión o no hay usuario, no renderizamos contenido
+  if (loading || !user) return null;
+
   return (
-    <View style={{ flex: 1, padding: 20 }}>
+    <View style={{ flex: 1, padding: 30, paddingTop: 50 }}>
       <Text style={{ fontSize: 24, fontWeight: "600" }}>Bienvenido 🐾</Text>
       <Text style={{ marginBottom: 20 }}>Usuario: {user.email}</Text>
 

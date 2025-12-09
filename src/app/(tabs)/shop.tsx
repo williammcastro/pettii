@@ -1,11 +1,11 @@
 // src/app/(tabs)/index.tsx
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuthStore } from '@/store/auth';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 
 export default function ShopScreen() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuthStore();
 
   useEffect(() => {
     if (!loading && !user) {

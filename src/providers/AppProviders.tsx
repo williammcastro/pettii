@@ -1,10 +1,22 @@
-import { AuthProvider } from "./AuthProvider";
+import { useEffect } from "react";
 import { QueryProvider } from "./QueryProvider";
+import { useAuthStore } from "@/store/auth";
+
+function AuthBootstrapper() {
+  const initAuth = useAuthStore((s) => s.initAuth);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
+  return null;
+}
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <QueryProvider>{children}</QueryProvider>
-    </AuthProvider>
+    <QueryProvider>
+      <AuthBootstrapper />
+      {children}
+    </QueryProvider>
   );
 }
