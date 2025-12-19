@@ -7,7 +7,8 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 export function PetDrawerContent(props: DrawerContentComponentProps) {
   const { user, loading } = useAuthStore();
-  const { selectedPetId, setSelectedPetId } = usePetSelectionStore();
+  const { selectedPetId, setSelectedPetId, setSelectedPetName } =
+    usePetSelectionStore();
   const userId = user?.id;
   const { data: pets, isLoading } = usePets(userId, !loading);
   const safePets = pets ?? [];
@@ -15,8 +16,9 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
   useEffect(() => {
     if (!loading && safePets.length > 0 && !selectedPetId) {
       setSelectedPetId(safePets[0].id);
+      setSelectedPetName(safePets[0].name);
     }
-  }, [loading, safePets, selectedPetId, setSelectedPetId]);
+  }, [loading, safePets, selectedPetId, setSelectedPetId, setSelectedPetName]);
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
@@ -36,6 +38,7 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
             style={[styles.petRow, isSelected && styles.petRowSelected]}
             onPress={() => {
               setSelectedPetId(pet.id);
+              setSelectedPetName(pet.name);
               props.navigation.closeDrawer();
             }}
           >
