@@ -1,11 +1,13 @@
 import { usePets } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
+import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Button, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const { user, loading, signOut } = useAuthStore();
+  const { selectedPetId, setSelectedPetId } = usePetSelectionStore();
   const userId = user?.id;
 
   // Redirección si no hay usuario
@@ -17,6 +19,13 @@ export default function HomeScreen() {
 
   const { data: pets, isLoading } = usePets(userId, !loading);
   const safePets = pets ?? []; // 👈 siempre es un array
+  const selectedPet = safePets.find((pet) => pet.id === selectedPetId);
+
+  useEffect(() => {
+    if (!loading && safePets.length > 0 && !selectedPetId) {
+      setSelectedPetId(safePets[0].id);
+    }
+  }, [loading, safePets, selectedPetId, setSelectedPetId]);
 
   // Mientras carga la sesión o no hay usuario, no renderizamos contenido
   if (loading || !user) return null;
@@ -32,31 +41,32 @@ export default function HomeScreen() {
         <Text>No tienes mascotas registradas. ¡Agrega una!</Text>
       )}
 
-      {!isLoading &&
-        safePets.length > 0 &&
-        safePets.map((pet) => (
-          <View
-            key={pet.id}
-            style={{
-              padding: 16,
-              backgroundColor: "#eee",
-              borderRadius: 12,
-              marginBottom: 10,
-            }}
-          >
-            <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-              {pet.name}
-            </Text>
-            <Text>{pet.species}</Text>
-            <Text>{pet.breed}</Text>
-          </View>
-        ))}
+      {!isLoading && safePets.length > 0 && !selectedPet && (
+        <Text>Selecciona una mascota desde el menú lateral.</Text>
+      )}
+
+      {!isLoading && selectedPet && (
+        <View
+          style={{
+            padding: 16,
+            backgroundColor: "#eee",
+            borderRadius: 12,
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+            {selectedPet.name}
+          </Text>
+          <Text>{selectedPet.species}</Text>
+          <Text>{selectedPet.breed}</Text>
+        </View>
+      )}
 
       <View style={{ height: 20 }} />
-        <Button
-          title="Agregar mascota"
-          onPress={() => router.push("/pet/create")}
-        />
+      <Button
+        title="Agregar mascota"
+        onPress={() => router.push("/pet/create")}
+      />
 
       <View style={{ height: 12 }} />
 
