@@ -3,10 +3,10 @@ import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
 import { useEffect } from "react";
-import { Button, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 export default function HomeScreen() {
-  const { user, loading, signOut } = useAuthStore();
+  const { user, loading } = useAuthStore();
   const { selectedPetId, setSelectedPetId } = usePetSelectionStore();
   const userId = user?.id;
 
@@ -63,14 +63,6 @@ export default function HomeScreen() {
       )}
 
       <View style={{ height: 20 }} />
-      <Button
-        title="Agregar mascota"
-        onPress={() => router.push("/pet/create")}
-      />
-
-      <View style={{ height: 12 }} />
-
-      <Button title="Cerrar sesión" onPress={signOut} />
     </View>
   );
 }

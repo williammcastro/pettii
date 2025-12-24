@@ -37,9 +37,27 @@ export default function ShopScreen() {
         Catálogo de productos
       </Text>
 
+      {user.email && (
+        <Text style={{ color: "#666", marginBottom: 12 }}>
+          Usuario seleccionado: {user.email}
+        </Text>
+      )}
+
+      {user.id && (
+        <Text style={{ color: "#666", marginBottom: 12 }}>
+          ID Usuario seleccionado: {user.id}
+        </Text>
+      )}
+
       {selectedPetId && (
         <Text style={{ color: "#666", marginBottom: 12 }}>
           Mascota seleccionada: {selectedPetId}
+        </Text>
+      )}
+
+      {products && (
+        <Text style={{ color: "#666", marginBottom: 12 }}>
+          Catalogo seleccionado: {products.length} productos
         </Text>
       )}
 
@@ -71,6 +89,11 @@ export default function ShopScreen() {
             {product.price_cents != null && (
               <Text style={{ marginTop: 6 }}>
                 {product.currency} {(product.price_cents / 100).toFixed(2)}
+              </Text>
+            )}
+            {product.price_cents != null && (
+              <Text style={{ marginTop: 6 }}>
+                Clinic id: {product.clinic_id}
               </Text>
             )}
           </View>

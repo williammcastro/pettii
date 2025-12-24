@@ -1,12 +1,16 @@
-import { DrawerContentScrollView, type DrawerContentComponentProps } from "@react-navigation/drawer";
+import {
+  DrawerContentScrollView,
+  type DrawerContentComponentProps,
+} from "@react-navigation/drawer";
 import { usePets } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { useEffect } from "react";
+import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 export function PetDrawerContent(props: DrawerContentComponentProps) {
-  const { user, loading } = useAuthStore();
+  const { user, loading, signOut } = useAuthStore();
   const { selectedPetId, setSelectedPetId, setSelectedPetName } =
     usePetSelectionStore();
   const userId = user?.id;
@@ -55,6 +59,25 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
           </Pressable>
         );
       })}
+
+      <View style={styles.divider} />
+
+      <Pressable
+        style={styles.actionButton}
+        onPress={() => {
+          props.navigation.closeDrawer();
+          router.push("/pet/create");
+        }}
+      >
+        <Text style={styles.actionText}>Agregar mascota</Text>
+      </Pressable>
+
+      <Pressable
+        style={[styles.actionButton, styles.signOutButton]}
+        onPress={signOut}
+      >
+        <Text style={styles.actionText}>Cerrar sesión</Text>
+      </Pressable>
     </DrawerContentScrollView>
   );
 }
@@ -100,5 +123,23 @@ const styles = StyleSheet.create({
   },
   petName: {
     fontSize: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#e2e2e2",
+    marginVertical: 12,
+  },
+  actionButton: {
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#f2f2f2",
+    marginBottom: 8,
+  },
+  signOutButton: {
+    backgroundColor: "#ffe7e7",
+  },
+  actionText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
