@@ -78,6 +78,18 @@ export async function fetchFeedPostsForPet(
   return attachSignedUrls(data ?? []);
 }
 
+export async function fetchPublicFeedPosts(): Promise<PostWithMedia[]> {
+  const { data, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return attachSignedUrls(data ?? []);
+}
+
 export async function createPostWithMedia(input: {
   owner_user_id: string;
   pet_id: string;
@@ -124,4 +136,40 @@ export async function createPostWithMedia(input: {
   if (error) throw error;
 
   return data;
+}
+
+export async function followPet(input: {
+  follower_pet_id: string;
+  followed_pet_id: string;
+}) {
+  const { error } = await supabase.from("pet_follows").insert(input);
+  if (error) throw error;
+}
+
+export async function unfollowPet(input: {
+  follower_pet_id: string;
+  followed_pet_id: string;
+}) {
+  const { error } = await supabase
+    .from("pet_follows")
+    .delete()
+    .eq("follower_pet_id", input.follower_pet_id)
+    .eq("followed_pet_id", input.followed_pet_id);
+  if (error) throw error;
+}
+
+export async function checkFollowStatus(input: {
+  follower_pet_id: string;
+  followed_pet_id: string;
+}): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("pet_follows")
+    .select("follower_pet_id")
+    .eq("follower_pet_id", input.follower_pet_id)
+    .eq("followed_pet_id", input.followed_pet_id)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return !!data;
 }

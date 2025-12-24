@@ -31,3 +31,15 @@ export async function addPet(input: {
 
   return data;
 }
+
+export async function fetchPetById(petId: string): Promise<Pet> {
+  const { data, error } = await supabase
+    .from("pets")
+    .select("*")
+    .eq("id", petId)
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}

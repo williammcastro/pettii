@@ -1,5 +1,11 @@
 // src/app/(tabs)/index.tsx
-import { useFeedPosts } from "@/features/posts/hooks";
+import {
+  useFollowPet,
+  useFollowStatus,
+  usePublicFeedPosts,
+  useUnfollowPet,
+} from "@/features/posts/hooks";
+import { usePetById } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
@@ -8,6 +14,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Pressable,
   Text,
   View,
 } from "react-native";
@@ -15,7 +22,9 @@ import {
 export default function SocialScreen() {
   const { user, loading } = useAuthStore();
   const selectedPetId = usePetSelectionStore((s) => s.selectedPetId);
-  const { data: posts, isLoading } = useFeedPosts(selectedPetId ?? undefined);
+  const { data: posts, isLoading } = usePublicFeedPosts();
+  const followMutation = useFollowPet();
+  const unfollowMutation = useUnfollowPet();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -46,9 +55,9 @@ export default function SocialScreen() {
         <Text>Selecciona una mascota desde el menú lateral.</Text>
       )}
 
-      {selectedPetId && isLoading && <ActivityIndicator />}
+      {isLoading && <ActivityIndicator />}
 
-      {selectedPetId && !isLoading && (posts?.length ?? 0) === 0 && (
+      {!isLoading && (posts?.length ?? 0) === 0 && (
         <Text>No hay publicaciones de mascotas seguidas.</Text>
       )}
 
@@ -64,6 +73,24 @@ export default function SocialScreen() {
               overflow: "hidden",
             }}
           >
+            <PetHeader
+              petId={item.pet_id}
+              followerPetId={selectedPetId}
+              onFollow={async (followedId) => {
+                if (!selectedPetId) return;
+                await followMutation.mutateAsync({
+                  follower_pet_id: selectedPetId,
+                  followed_pet_id: followedId,
+                });
+              }}
+              onUnfollow={async (followedId) => {
+                if (!selectedPetId) return;
+                await unfollowMutation.mutateAsync({
+                  follower_pet_id: selectedPetId,
+                  followed_pet_id: followedId,
+                });
+              }}
+            />
             {item.media_type === "image" && item.media_url ? (
               <Image
                 source={{ uri: item.media_url }}
@@ -89,6 +116,59 @@ export default function SocialScreen() {
           </View>
         )}
       />
+    </View>
+  );
+}
+
+function PetHeader({
+  petId,
+  followerPetId,
+  onFollow,
+  onUnfollow,
+}: {
+  petId: string;
+  followerPetId?: string | null;
+  onFollow: (petId: string) => Promise<void>;
+  onUnfollow: (petId: string) => Promise<void>;
+}) {
+  const { data: pet } = usePetById(petId);
+  const { data: isFollowing, isLoading } = useFollowStatus(
+    followerPetId ?? undefined,
+    petId
+  );
+
+  const showActions = !!followerPetId && followerPetId !== petId;
+
+  return (
+    <View
+      style={{
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        borderBottomWidth: 1,
+        borderBottomColor: "#e4e4e4",
+      }}
+    >
+      <Text style={{ fontWeight: "600" }}>{pet?.name ?? "Mascota"}</Text>
+      {showActions && !isLoading && (
+        <Pressable
+          onPress={() =>
+            isFollowing ? onUnfollow(petId) : onFollow(petId)
+          }
+          style={{
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 8,
+            backgroundColor: isFollowing ? "#eee" : "#0a7ea4",
+          }}
+        >
+          <Text style={{ color: isFollowing ? "#333" : "#fff" }}>
+            {isFollowing ? "Siguiendo" : "Seguir"}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
