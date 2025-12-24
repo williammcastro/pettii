@@ -2,11 +2,11 @@ import { usePets } from "@/features/pets/hooks";
 import { useCreatePetPost, usePetPosts } from "@/features/posts/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
-import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
+import * as FileSystem from "expo-file-system/legacy";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -27,6 +27,7 @@ export default function HomeScreen() {
   );
   const { mutateAsync, isPending } = useCreatePetPost();
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  const [imageCache, setImageCache] = useState<Record<string, string>>({});
   const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
 
   // Redirección si no hay usuario
@@ -160,10 +161,10 @@ export default function HomeScreen() {
             }}
           >
             {item.media_type === "image" && item.media_url ? (
-              <Image
-                source={{ uri: item.media_url }}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
+              <CachedMediaImage
+                mediaUrl={item.media_url}
+                cache={imageCache}
+                setCache={setImageCache}
               />
             ) : item.media_type === "video" ? (
               <VideoThumbnail
@@ -301,12 +302,72 @@ function VideoThumbnail({
   );
 }
 
+function CachedMediaImage({
+  mediaUrl,
+  cache,
+  setCache,
+}: {
+  mediaUrl: string;
+  cache: Record<string, string>;
+  setCache: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+}) {
+  useEffect(() => {
+    let active = true;
+
+    async function loadImage() {
+      if (cache[mediaUrl]) return;
+      const cachedUri = await getCachedMedia(mediaUrl);
+      if (cachedUri) {
+        if (active) {
+          setCache((prev) => ({ ...prev, [mediaUrl]: cachedUri }));
+        }
+        return;
+      }
+
+      try {
+        const storedUri = await storeMedia(mediaUrl);
+        if (active) {
+          setCache((prev) => ({
+            ...prev,
+            [mediaUrl]: storedUri ?? mediaUrl,
+          }));
+        }
+      } catch {
+        if (active) {
+          setCache((prev) => ({ ...prev, [mediaUrl]: mediaUrl }));
+        }
+      }
+    }
+
+    loadImage();
+
+    return () => {
+      active = false;
+    };
+  }, [cache, mediaUrl, setCache]);
+
+  const uri = cache[mediaUrl] ?? mediaUrl;
+
+  return (
+    <Image
+      source={{ uri }}
+      style={{ width: "100%", height: "100%" }}
+      resizeMode="cover"
+    />
+  );
+}
+
 function hashString(value: string) {
   let hash = 5381;
   for (let i = 0; i < value.length; i += 1) {
     hash = (hash * 33) ^ value.charCodeAt(i);
   }
   return (hash >>> 0).toString(36);
+}
+
+function getFileExtensionFromUrl(url: string) {
+  const match = url.split("?")[0].match(/\.([a-zA-Z0-9]+)$/);
+  return match ? `.${match[1]}` : ".img";
 }
 
 async function getCachedThumbnail(mediaUrl: string) {
@@ -330,6 +391,25 @@ async function storeThumbnail(mediaUrl: string, sourceUri: string) {
   } catch {
     return null;
   }
+}
+
+async function getCachedMedia(mediaUrl: string) {
+  const cacheDir = `${FileSystem.cacheDirectory}pet-media/`;
+  const fileName = `${hashString(mediaUrl)}${getFileExtensionFromUrl(mediaUrl)}`;
+  const fileUri = `${cacheDir}${fileName}`;
+
+  const info = await FileSystem.getInfoAsync(fileUri);
+  return info.exists ? fileUri : null;
+}
+
+async function storeMedia(mediaUrl: string) {
+  const cacheDir = `${FileSystem.cacheDirectory}pet-media/`;
+  const fileName = `${hashString(mediaUrl)}${getFileExtensionFromUrl(mediaUrl)}`;
+  const fileUri = `${cacheDir}${fileName}`;
+
+  await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
+  const result = await FileSystem.downloadAsync(mediaUrl, fileUri);
+  return result.uri;
 }
 
 function VideoModal({
