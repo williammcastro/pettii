@@ -18,6 +18,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { VideoView, useVideoPlayer } from "expo-video";
 
 export default function SocialScreen() {
   const { user, loading } = useAuthStore();
@@ -97,6 +98,8 @@ export default function SocialScreen() {
                 style={{ width: "100%", height: 220 }}
                 resizeMode="cover"
               />
+            ) : item.media_type === "video" && item.media_url ? (
+              <FeedVideo uri={item.media_url} />
             ) : (
               <View
                 style={{
@@ -117,6 +120,29 @@ export default function SocialScreen() {
         )}
       />
     </View>
+  );
+}
+
+function FeedVideo({ uri }: { uri: string }) {
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = false;
+    p.play();
+  });
+
+  useEffect(() => {
+    return () => {
+      player.pause();
+    };
+  }, [player]);
+
+  return (
+    <VideoView
+      player={player}
+      style={{ width: "100%", height: 220 }}
+      allowsFullscreen
+      allowsPictureInPicture
+      nativeControls
+    />
   );
 }
 

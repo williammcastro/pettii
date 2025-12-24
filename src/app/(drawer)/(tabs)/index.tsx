@@ -3,8 +3,9 @@ import { usePets } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
+import * as VideoThumbnails from "expo-video-thumbnails";
 import {
   ActivityIndicator,
   FlatList,
@@ -22,6 +23,7 @@ export default function HomeScreen() {
     selectedPetId ?? undefined
   );
   const { mutateAsync, isPending } = useCreatePetPost();
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
 
   // Redirección si no hay usuario
   useEffect(() => {
@@ -153,39 +155,18 @@ export default function HomeScreen() {
             }}
           >
             {item.media_type === "image" && item.media_url ? (
-              <View
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  backgroundColor: "#ddd",
-                }}
-              >
-                <View
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    backgroundColor: "#ddd",
-                  }}
-                >
-                  <Image
-                    source={{ uri: item.media_url }}
-                    style={{ width: "100%", height: "100%" }}
-                    resizeMode="cover"
-                  />
-                </View>
-              </View>
+              <Image
+                source={{ uri: item.media_url }}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="cover"
+              />
             ) : item.media_type === "video" ? (
-              <View
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#ccc",
-                }}
-              >
-                <Text style={{ color: "#333", fontWeight: "600" }}>Video</Text>
-              </View>
+              <VideoThumbnail
+                postId={item.id}
+                mediaUrl={item.media_url ?? undefined}
+                thumbs={thumbs}
+                setThumbs={setThumbs}
+              />
             ) : (
               <View
                 style={{
@@ -201,6 +182,70 @@ export default function HomeScreen() {
           </View>
         )}
       />
+    </View>
+  );
+}
+
+function VideoThumbnail({
+  postId,
+  mediaUrl,
+  thumbs,
+  setThumbs,
+}: {
+  postId: string;
+  mediaUrl?: string;
+  thumbs: Record<string, string>;
+  setThumbs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+}) {
+  useEffect(() => {
+    let active = true;
+
+    async function loadThumbnail() {
+      if (!mediaUrl || thumbs[postId]) return;
+      try {
+        const { uri } = await VideoThumbnails.getThumbnailAsync(mediaUrl, {
+          time: 1000,
+        });
+        if (active) {
+          setThumbs((prev) => ({ ...prev, [postId]: uri }));
+        }
+      } catch {
+        if (active) {
+          setThumbs((prev) => ({ ...prev, [postId]: "" }));
+        }
+      }
+    }
+
+    loadThumbnail();
+
+    return () => {
+      active = false;
+    };
+  }, [mediaUrl, postId, setThumbs, thumbs]);
+
+  const uri = thumbs[postId];
+
+  if (uri) {
+    return (
+      <Image
+        source={{ uri }}
+        style={{ width: "100%", height: "100%" }}
+        resizeMode="cover"
+      />
+    );
+  }
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#ccc",
+      }}
+    >
+      <Text style={{ color: "#333", fontWeight: "600" }}>Video</Text>
     </View>
   );
 }
