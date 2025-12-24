@@ -6,10 +6,12 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as VideoThumbnails from "expo-video-thumbnails";
+import { useVideoPlayer, VideoView } from "expo-video";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Modal,
   Pressable,
   Text,
   View,
@@ -24,6 +26,7 @@ export default function HomeScreen() {
   );
   const { mutateAsync, isPending } = useCreatePetPost();
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
 
   // Redirección si no hay usuario
   useEffect(() => {
@@ -166,6 +169,9 @@ export default function HomeScreen() {
                 mediaUrl={item.media_url ?? undefined}
                 thumbs={thumbs}
                 setThumbs={setThumbs}
+                onPress={() => {
+                  if (item.media_url) setActiveVideoUrl(item.media_url);
+                }}
               />
             ) : (
               <View
@@ -182,6 +188,11 @@ export default function HomeScreen() {
           </View>
         )}
       />
+
+      <VideoModal
+        url={activeVideoUrl}
+        onClose={() => setActiveVideoUrl(null)}
+      />
     </View>
   );
 }
@@ -191,11 +202,13 @@ function VideoThumbnail({
   mediaUrl,
   thumbs,
   setThumbs,
+  onPress,
 }: {
   postId: string;
   mediaUrl?: string;
   thumbs: Record<string, string>;
   setThumbs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onPress: () => void;
 }) {
   useEffect(() => {
     let active = true;
@@ -227,11 +240,35 @@ function VideoThumbnail({
 
   if (uri) {
     return (
-      <Image
-        source={{ uri }}
-        style={{ width: "100%", height: "100%" }}
-        resizeMode="cover"
-      />
+      <Pressable onPress={onPress} style={{ width: "100%", height: "100%" }}>
+        <Image
+          source={{ uri }}
+          style={{ width: "100%", height: "100%" }}
+          resizeMode="cover"
+        />
+        <View
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 17,
+              backgroundColor: "rgba(0,0,0,0.55)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "700" }}>▶</Text>
+          </View>
+        </View>
+      </Pressable>
     );
   }
 
@@ -247,5 +284,54 @@ function VideoThumbnail({
     >
       <Text style={{ color: "#333", fontWeight: "600" }}>Video</Text>
     </View>
+  );
+}
+
+function VideoModal({
+  url,
+  onClose,
+}: {
+  url: string | null;
+  onClose: () => void;
+}) {
+  const player = useVideoPlayer(url ?? "", (p) => {
+    p.loop = false;
+    if (url) p.play();
+  });
+
+  useEffect(() => {
+    if (url) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [player, url]);
+
+  return (
+    <Modal visible={!!url} animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: "#000" }}>
+        <VideoView
+          player={player}
+          style={{ width: "100%", height: "100%" }}
+          allowsFullscreen
+          allowsPictureInPicture
+          nativeControls
+        />
+        <Pressable
+          onPress={onClose}
+          style={{
+            position: "absolute",
+            top: 40,
+            right: 20,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            borderRadius: 8,
+          }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "600" }}>Cerrar</Text>
+        </Pressable>
+      </View>
+    </Modal>
   );
 }
