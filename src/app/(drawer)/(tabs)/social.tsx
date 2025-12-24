@@ -162,10 +162,11 @@ function FeedVideo({ uri, isActive }: { uri: string; isActive: boolean }) {
   return (
     <VideoView
       player={player}
-      style={{ width: "100%", height: 220 }}
-      allowsFullscreen
+      style={{ width: "100%", height: 260, backgroundColor: "#000" }}
       allowsPictureInPicture
       nativeControls
+      contentFit="cover"
+      fullscreenOptions={{ enable: true }}
     />
   );
 }
