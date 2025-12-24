@@ -9,7 +9,7 @@ import { usePetById } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -26,6 +26,20 @@ export default function SocialScreen() {
   const { data: posts, isLoading } = usePublicFeedPosts();
   const followMutation = useFollowPet();
   const unfollowMutation = useUnfollowPet();
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: Array<{ item: any }> }) => {
+      const firstVisibleVideo = viewableItems.find(
+        (v) => v.item?.media_type === "video"
+      );
+      setActiveVideoId(firstVisibleVideo?.item?.id ?? null);
+    }
+  ).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 60,
+  }).current;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -66,6 +80,8 @@ export default function SocialScreen() {
         data={posts ?? []}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         renderItem={({ item }) => (
           <View
             style={{
@@ -99,7 +115,10 @@ export default function SocialScreen() {
                 resizeMode="cover"
               />
             ) : item.media_type === "video" && item.media_url ? (
-              <FeedVideo uri={item.media_url} />
+              <FeedVideo
+                uri={item.media_url}
+                isActive={activeVideoId === item.id}
+              />
             ) : (
               <View
                 style={{
@@ -123,17 +142,22 @@ export default function SocialScreen() {
   );
 }
 
-function FeedVideo({ uri }: { uri: string }) {
+function FeedVideo({ uri, isActive }: { uri: string; isActive: boolean }) {
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;
-    p.play();
   });
 
   useEffect(() => {
-    return () => {
-      player.pause();
-    };
-  }, [player]);
+    try {
+      if (isActive) {
+        player.play();
+      } else {
+        player.pause();
+      }
+    } catch {
+      // no-op: player might be disposed during unmount
+    }
+  }, [isActive, player]);
 
   return (
     <VideoView

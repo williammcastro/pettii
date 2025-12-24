@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import * as VideoThumbnails from "expo-video-thumbnails";
 import { useVideoPlayer, VideoView } from "expo-video";
+import * as FileSystem from "expo-file-system/legacy";
 import {
   ActivityIndicator,
   FlatList,
@@ -216,11 +217,23 @@ function VideoThumbnail({
     async function loadThumbnail() {
       if (!mediaUrl || thumbs[postId]) return;
       try {
+        const cachedUri = await getCachedThumbnail(mediaUrl);
+        if (cachedUri) {
+          if (active) {
+            setThumbs((prev) => ({ ...prev, [postId]: cachedUri }));
+          }
+          return;
+        }
+
         const { uri } = await VideoThumbnails.getThumbnailAsync(mediaUrl, {
           time: 1000,
         });
+        const storedUri = await storeThumbnail(mediaUrl, uri);
         if (active) {
-          setThumbs((prev) => ({ ...prev, [postId]: uri }));
+          setThumbs((prev) => ({
+            ...prev,
+            [postId]: storedUri ?? uri,
+          }));
         }
       } catch {
         if (active) {
@@ -285,6 +298,37 @@ function VideoThumbnail({
       <Text style={{ color: "#333", fontWeight: "600" }}>Video</Text>
     </View>
   );
+}
+
+function hashString(value: string) {
+  let hash = 5381;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+async function getCachedThumbnail(mediaUrl: string) {
+  const cacheDir = `${FileSystem.cacheDirectory}pet-thumbs/`;
+  const fileName = `${hashString(mediaUrl)}.jpg`;
+  const fileUri = `${cacheDir}${fileName}`;
+
+  const info = await FileSystem.getInfoAsync(fileUri);
+  return info.exists ? fileUri : null;
+}
+
+async function storeThumbnail(mediaUrl: string, sourceUri: string) {
+  const cacheDir = `${FileSystem.cacheDirectory}pet-thumbs/`;
+  const fileName = `${hashString(mediaUrl)}.jpg`;
+  const fileUri = `${cacheDir}${fileName}`;
+
+  try {
+    await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
+    await FileSystem.copyAsync({ from: sourceUri, to: fileUri });
+    return fileUri;
+  } catch {
+    return null;
+  }
 }
 
 function VideoModal({
