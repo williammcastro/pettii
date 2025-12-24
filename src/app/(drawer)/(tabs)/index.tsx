@@ -1,13 +1,13 @@
-import { usePetPosts, useCreatePetPost } from "@/features/posts/hooks";
 import { usePets } from "@/features/pets/hooks";
+import { useCreatePetPost, usePetPosts } from "@/features/posts/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import * as ImagePicker from "expo-image-picker";
-import * as VideoThumbnails from "expo-video-thumbnails";
-import { useVideoPlayer, VideoView } from "expo-video";
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
+import { useVideoPlayer, VideoView } from "expo-video";
+import * as VideoThumbnails from "expo-video-thumbnails";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -59,6 +59,7 @@ export default function HomeScreen() {
       mediaTypes: ["images", "videos"],
       allowsEditing: false,
       quality: 0.9,
+      videoExportPreset: ImagePicker.VideoExportPreset.H264_960x540,
     });
 
     if (result.canceled) return;
