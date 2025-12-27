@@ -1,10 +1,10 @@
 // src/app/(tabs)/index.tsx
-import { usePrimaryClinic, useJoinClinicByCode } from "@/features/clinics/hooks";
+import { useJoinClinicByCode, usePrimaryClinic } from "@/features/clinics/hooks";
 import { useProductsForPrimaryClinic } from "@/features/products/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
-import { router } from "expo-router";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
@@ -94,7 +94,7 @@ export default function ShopScreen() {
         Catálogo de productos
       </Text>
 
-      {user.email && (
+      {/* {user.email && (
         <Text style={styles.meta}>
           Usuario seleccionado: {user.email}
         </Text>
@@ -110,7 +110,7 @@ export default function ShopScreen() {
         <Text style={styles.meta}>
           Mascota seleccionada: {selectedPetId}
         </Text>
-      )}
+      )} */}
 
       {isClinicLoading && <Text>Cargando veterinaria...</Text>}
 
@@ -118,9 +118,6 @@ export default function ShopScreen() {
         <View style={styles.joinCard}>
           <Text style={styles.joinTitle}>
             {hasPrimaryClinic ? "Cambiar veterinaria" : "Vincula tu veterinaria"}
-          </Text>
-          <Text style={styles.joinText}>
-            Ingresa el código que te dio Pettii Vet para ver el catálogo.
           </Text>
           <TextInput
             style={styles.input}
@@ -140,14 +137,15 @@ export default function ShopScreen() {
 
       {hasPrimaryClinic && (
         <Text style={styles.meta}>
-          Veterinaria: {primaryClinic?.name ?? "Sin nombre"} (
-          {primaryClinic?.code ?? "sin código"}) — ID {primaryClinic?.id}
+          {primaryClinic?.name ?? "Sin nombre"} (
+          {primaryClinic?.code ?? "sin código"})
+          {/* {primaryClinic?.id} */}
         </Text>
       )}
 
       {products && hasPrimaryClinic && (
         <Text style={styles.meta}>
-          Catálogo seleccionado: {products.length} productos
+          {products.length} productos
         </Text>
       )}
 
@@ -222,7 +220,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   joinTitle: { fontSize: 16, fontWeight: "600", marginBottom: 6 },
-  joinText: { color: "#666", marginBottom: 12 },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
