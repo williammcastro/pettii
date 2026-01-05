@@ -94,6 +94,33 @@ export default function ShopScreen() {
         Catálogo de productos
       </Text>
 
+      {hasPrimaryClinic && (
+        <View style={styles.clinicHeader}>
+          {primaryClinic?.logo_signed_url || primaryClinic?.logo_url ? (
+            <Image
+              source={{
+                uri:
+                  primaryClinic.logo_signed_url ??
+                  primaryClinic.logo_url ??
+                  "",
+              }}
+              style={styles.clinicLogo}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={styles.clinicLogoPlaceholder} />
+          )}
+          <View style={styles.clinicInfo}>
+            <Text style={styles.clinicName}>
+              {primaryClinic?.name ?? "Veterinaria"}
+            </Text>
+            <Text style={styles.clinicSlogan}>
+              {primaryClinic?.slogan ?? "Tu clinica de confianza"}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* {user.email && (
         <Text style={styles.meta}>
           Usuario seleccionado: {user.email}
@@ -133,14 +160,6 @@ export default function ShopScreen() {
             disabled={isJoining}
           />
         </View>
-      )}
-
-      {hasPrimaryClinic && (
-        <Text style={styles.meta}>
-          {primaryClinic?.name ?? "Sin nombre"} (
-          {primaryClinic?.code ?? "sin código"})
-          {/* {primaryClinic?.id} */}
-        </Text>
       )}
 
       {products && hasPrimaryClinic && (
@@ -229,6 +248,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   errorText: { color: "#c0392b", marginBottom: 10 },
+  clinicHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#f7f7f7",
+    marginBottom: 16,
+  },
+  clinicLogo: { width: 56, height: 56, borderRadius: 28 },
+  clinicLogoPlaceholder: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#e0e0e0",
+  },
+  clinicInfo: { flex: 1 },
+  clinicName: { fontSize: 16, fontWeight: "600" },
+  clinicSlogan: { color: "#666", marginTop: 4, fontSize: 12 },
   gridContent: { paddingBottom: 24 },
   gridRow: { justifyContent: "space-between", marginBottom: 12 },
   productCard: {
