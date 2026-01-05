@@ -1,35 +1,27 @@
 // src/app/(tabs)/index.tsx
-import { useJoinClinicByCode, usePrimaryClinic } from "@/features/clinics/hooks";
+import { usePrimaryClinic } from "@/features/clinics/hooks";
 import { useProductsForPrimaryClinic } from "@/features/products/hooks";
 import { useAuthStore } from "@/store/auth";
-import { usePetSelectionStore } from "@/store/pet-selection";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
-  Alert,
-  Button,
   FlatList,
   RefreshControl,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
 export default function ShopScreen() {
   const { user, loading } = useAuthStore();
   const userId = user?.id;
-  const selectedPetId = usePetSelectionStore((s) => s.selectedPetId);
   const {
     data: primaryClinic,
     isLoading: isClinicLoading,
     error: clinicError,
     refetch: refetchClinic,
   } = usePrimaryClinic(userId);
-  const { mutateAsync: joinClinic, isPending: isJoining } = useJoinClinicByCode(userId);
-  const [clinicCode, setClinicCode] = useState("");
-  const [joinError, setJoinError] = useState<string | null>(null);
 
   const hasPrimaryClinic = !!primaryClinic?.id;
   const {
@@ -67,32 +59,9 @@ export default function ShopScreen() {
     return null;
   }
 
-  const handleJoinClinic = async () => {
-    const normalized = clinicCode.trim();
-    if (!normalized) {
-      setJoinError("Ingresa el código de tu veterinaria.");
-      return;
-    }
-
-    setJoinError(null);
-    try {
-      await joinClinic(normalized);
-      setClinicCode("");
-      await refetchClinic();
-      await refetchProducts();
-      Alert.alert("Listo", "Veterinaria vinculada.");
-    } catch (e: any) {
-      const message =
-        e?.message ?? "No se pudo vincular la veterinaria. Intenta de nuevo.";
-      setJoinError(message);
-    }
-  };
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        Catálogo de productos
-      </Text>
+
 
       {hasPrimaryClinic && (
         <View style={styles.clinicHeader}>
@@ -121,6 +90,10 @@ export default function ShopScreen() {
         </View>
       )}
 
+      <Text style={styles.title}>
+        Catálogo de productos
+      </Text>
+
       {/* {user.email && (
         <Text style={styles.meta}>
           Usuario seleccionado: {user.email}
@@ -140,27 +113,6 @@ export default function ShopScreen() {
       )} */}
 
       {isClinicLoading && <Text>Cargando veterinaria...</Text>}
-
-      {!isClinicLoading && (
-        <View style={styles.joinCard}>
-          <Text style={styles.joinTitle}>
-            {hasPrimaryClinic ? "Cambiar veterinaria" : "Vincula tu veterinaria"}
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Código de veterinaria"
-            autoCapitalize="characters"
-            value={clinicCode}
-            onChangeText={setClinicCode}
-          />
-          {joinError && <Text style={styles.errorText}>{joinError}</Text>}
-          <Button
-            title={isJoining ? "Vinculando..." : "Vincular"}
-            onPress={handleJoinClinic}
-            disabled={isJoining}
-          />
-        </View>
-      )}
 
       {products && hasPrimaryClinic && (
         <Text style={styles.meta}>
@@ -230,23 +182,8 @@ export default function ShopScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
-  title: { fontSize: 20, fontWeight: "600", marginBottom: 12 },
+  title: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
   meta: { color: "#666", marginBottom: 12 },
-  joinCard: {
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: "#f7f7f7",
-    marginBottom: 16,
-  },
-  joinTitle: { fontSize: 16, fontWeight: "600", marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-    backgroundColor: "#fff",
-  },
   errorText: { color: "#c0392b", marginBottom: 10 },
   clinicHeader: {
     flexDirection: "row",
@@ -265,8 +202,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0e0e0",
   },
   clinicInfo: { flex: 1 },
-  clinicName: { fontSize: 16, fontWeight: "600" },
-  clinicSlogan: { color: "#666", marginTop: 4, fontSize: 12 },
+  clinicName: { fontSize: 18, fontWeight: "600" },
+  clinicSlogan: { color: "#666", marginTop: 4, fontSize: 14 },
   gridContent: { paddingBottom: 24 },
   gridRow: { justifyContent: "space-between", marginBottom: 12 },
   productCard: {

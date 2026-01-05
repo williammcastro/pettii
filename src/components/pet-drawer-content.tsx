@@ -62,6 +62,19 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
 
       <View style={styles.divider} />
 
+      <Text style={styles.sectionTitle}>Veterinaria</Text>
+      <Pressable
+        style={styles.actionButton}
+        onPress={() => {
+          props.navigation.closeDrawer();
+          router.push("/clinic/change");
+        }}
+      >
+        <Text style={styles.actionText}>Cambiar veterinaria</Text>
+      </Pressable>
+
+      <View style={styles.divider} />
+
       <Pressable
         style={styles.actionButton}
         onPress={() => {
@@ -90,6 +103,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
   },
   muted: {
     color: "#666",

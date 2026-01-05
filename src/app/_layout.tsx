@@ -20,6 +20,10 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+          <Stack.Screen
+            name="clinic/change"
+            options={{ presentation: "modal", title: "Cambiar veterinaria" }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
