@@ -7,10 +7,14 @@ import { useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -95,101 +99,116 @@ export default function CartModal() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Tu carrito</Text>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.closeText}>Cerrar</Text>
-        </Pressable>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior="padding"
+      keyboardVerticalOffset={Math.max(insets.top, 12)}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={[styles.content, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Tu carrito</Text>
+            <Pressable onPress={() => router.back()}>
+              <Text style={styles.closeText}>Cerrar</Text>
+            </Pressable>
+          </View>
 
-      {items.length === 0 ? (
-        <Text style={styles.muted}>Aun no tienes productos en el carrito.</Text>
-      ) : (
-        <View style={styles.items}>
-          {items.map((item) => (
-            <View key={item.productId} style={styles.itemRow}>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>
-                  {item.quantity} x {item.name}
-                </Text>
-                {item.price_cents != null && (
-                  <Text style={styles.itemPrice}>
-                    {item.currency} {(item.price_cents / 100).toFixed(2)}
-                  </Text>
-                )}
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {items.length === 0 ? (
+              <Text style={styles.muted}>Aun no tienes productos en el carrito.</Text>
+            ) : (
+              <View style={styles.items}>
+                {items.map((item) => (
+                  <View key={item.productId} style={styles.itemRow}>
+                    <View style={styles.itemInfo}>
+                      <Text style={styles.itemName}>
+                        {item.quantity} x {item.name}
+                      </Text>
+                      {item.price_cents != null && (
+                        <Text style={styles.itemPrice}>
+                          {item.currency} {(item.price_cents / 100).toFixed(2)}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.counter}>
+                      <Pressable
+                        style={styles.counterButton}
+                        onPress={() => decrementItem(item.productId)}
+                      >
+                        <Text style={styles.counterText}>-</Text>
+                      </Pressable>
+                      <Text style={styles.counterValue}>{item.quantity}</Text>
+                      <Pressable
+                        style={styles.counterButton}
+                        onPress={() =>
+                          addItem({
+                            productId: item.productId,
+                            name: item.name,
+                            price_cents: item.price_cents,
+                            currency: item.currency,
+                          })
+                        }
+                      >
+                        <Text style={styles.counterText}>+</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
               </View>
-              <View style={styles.counter}>
-                <Pressable
-                  style={styles.counterButton}
-                  onPress={() => decrementItem(item.productId)}
-                >
-                  <Text style={styles.counterText}>-</Text>
-                </Pressable>
-                <Text style={styles.counterValue}>{item.quantity}</Text>
-                <Pressable
-                  style={styles.counterButton}
-                  onPress={() =>
-                    addItem({
-                      productId: item.productId,
-                      name: item.name,
-                      price_cents: item.price_cents,
-                      currency: item.currency,
-                    })
-                  }
-                >
-                  <Text style={styles.counterText}>+</Text>
-                </Pressable>
-              </View>
+            )}
+
+            <View style={styles.form}>
+              <Text style={styles.formLabel}>Direccion de entrega</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: Calle 123 #45-67"
+                value={address}
+                onChangeText={setAddress}
+              />
+              <Text style={styles.formLabel}>Telefono de contacto</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej: 3001234567"
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={setPhone}
+              />
+              {error && <Text style={styles.errorText}>{error}</Text>}
             </View>
-          ))}
+
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                {currency} {(total / 100).toFixed(2)}
+              </Text>
+            </View>
+          </ScrollView>
+
+          <Pressable
+            style={[
+              styles.orderButton,
+              (items.length === 0 || isPending) && styles.orderDisabled,
+            ]}
+            onPress={handleOrder}
+            disabled={items.length === 0 || isPending}
+          >
+            <Text style={styles.orderText}>
+              {isPending ? "Procesando..." : "Ordenar y pagar contra entrega"}
+            </Text>
+          </Pressable>
         </View>
-      )}
-
-      <View style={styles.form}>
-        <Text style={styles.formLabel}>Direccion de entrega</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ej: Calle 123 #45-67"
-          value={address}
-          onChangeText={setAddress}
-        />
-        <Text style={styles.formLabel}>Telefono de contacto</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ej: 3001234567"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
-
-      <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Total</Text>
-        <Text style={styles.totalValue}>
-          {currency} {(total / 100).toFixed(2)}
-        </Text>
-      </View>
-
-      <Pressable
-        style={[
-          styles.orderButton,
-          (items.length === 0 || isPending) && styles.orderDisabled,
-        ]}
-        onPress={handleOrder}
-        disabled={items.length === 0 || isPending}
-      >
-        <Text style={styles.orderText}>
-          {isPending ? "Procesando..." : "Ordenar y pagar contra entrega"}
-        </Text>
-      </Pressable>
-    </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
+  container: { flex: 1, backgroundColor: "#fff" },
+  content: { flex: 1, padding: 20 },
+  scrollContent: { paddingBottom: 12 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

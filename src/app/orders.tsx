@@ -1,7 +1,7 @@
 import { useOrdersForUser } from "@/features/orders/hooks";
 import { useAuthStore } from "@/store/auth";
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 function formatStatus(status: string) {
   switch (status) {
@@ -38,7 +38,12 @@ export default function OrdersModal() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mis pedidos</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Mis pedidos</Text>
+        <Pressable onPress={() => router.back()}>
+          <Text style={styles.closeText}>Cerrar</Text>
+        </Pressable>
+      </View>
       {isLoading && <Text>Cargando pedidos...</Text>}
 
       {!isLoading && (orders?.length ?? 0) === 0 && (
@@ -62,7 +67,14 @@ export default function OrdersModal() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  title: { fontSize: 20, fontWeight: "600", marginBottom: 16 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  title: { fontSize: 20, fontWeight: "600" },
+  closeText: { color: "#333" },
   muted: { color: "#666" },
   orderCard: {
     padding: 14,
