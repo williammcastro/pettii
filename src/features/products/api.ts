@@ -69,3 +69,16 @@ export async function fetchProductsForPrimaryClinic(
 
   return attachSignedProductUrls(data ?? []);
 }
+
+export async function fetchProductById(productId: string): Promise<Product> {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", productId)
+    .single();
+
+  if (error) throw error;
+
+  const [withSigned] = await attachSignedProductUrls([data]);
+  return withSigned;
+}

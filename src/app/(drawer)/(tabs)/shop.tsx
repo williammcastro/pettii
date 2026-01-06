@@ -2,11 +2,14 @@
 import { usePrimaryClinic } from "@/features/clinics/hooks";
 import { useProductsForPrimaryClinic } from "@/features/products/hooks";
 import { useAuthStore } from "@/store/auth";
+import { useCartStore } from "@/store/cart";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect } from "react";
 import {
   FlatList,
+  Pressable,
   RefreshControl,
   StyleSheet,
   Text,
@@ -16,6 +19,8 @@ import {
 export default function ShopScreen() {
   const { user, loading } = useAuthStore();
   const userId = user?.id;
+  const cartItems = useCartStore((s) => s.items);
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const {
     data: primaryClinic,
     isLoading: isClinicLoading,
@@ -59,10 +64,12 @@ export default function ShopScreen() {
     return null;
   }
 
+  const handleCartPress = () => {
+    router.push("/cart");
+  };
+
   return (
     <View style={styles.container}>
-
-
       {hasPrimaryClinic && (
         <View style={styles.clinicHeader}>
           {primaryClinic?.logo_signed_url || primaryClinic?.logo_url ? (
@@ -89,6 +96,20 @@ export default function ShopScreen() {
           </View>
         </View>
       )}
+
+      <View style={styles.actionRow}>
+        <Pressable style={styles.cartButton} onPress={handleCartPress}>
+          <MaterialIcons name="shopping-cart" size={24} color="#111" />
+          <Text style={styles.cartCount}>{cartCount}</Text>
+        </Pressable>
+        <Pressable
+          style={styles.cartButton}
+          onPress={() => router.push("/orders")}
+        >
+          <MaterialIcons name="receipt-long" size={24} color="#111" />
+          <Text style={styles.cartCount}>Mis pedidos</Text>
+        </Pressable>
+      </View>
 
       <Text style={styles.title}>
         Catálogo de productos
@@ -149,15 +170,17 @@ export default function ShopScreen() {
           }
           renderItem={({ item }) => (
             <View style={styles.productCard}>
-              {item.image_signed_url || item.image_url ? (
-                <Image
-                  source={{ uri: item.image_signed_url ?? item.image_url ?? "" }}
-                  style={styles.productImage}
-                  contentFit="cover"
-                />
-              ) : (
-                <View style={styles.productImagePlaceholder} />
-              )}
+              <Pressable onPress={() => router.push(`/product/${item.id}`)}>
+                {item.image_signed_url || item.image_url ? (
+                  <Image
+                    source={{ uri: item.image_signed_url ?? item.image_url ?? "" }}
+                    style={styles.productImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={styles.productImagePlaceholder} />
+                )}
+              </Pressable>
               <Text style={styles.productName} numberOfLines={2}>
                 {item.name}
               </Text>
@@ -182,6 +205,23 @@ export default function ShopScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  cartButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  cartCount: { color: "#111", fontWeight: "600" },
   title: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
   meta: { color: "#666", marginBottom: 12 },
   errorText: { color: "#c0392b", marginBottom: 10 },

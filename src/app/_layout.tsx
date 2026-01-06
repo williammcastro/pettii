@@ -24,6 +24,18 @@ export default function RootLayout() {
             name="clinic/change"
             options={{ presentation: "modal", title: "Cambiar veterinaria" }}
           />
+          <Stack.Screen
+            name="cart"
+            options={{ presentation: "modal", title: "Carrito" }}
+          />
+          <Stack.Screen
+            name="orders"
+            options={{ presentation: "modal", title: "Mis pedidos" }}
+          />
+          <Stack.Screen
+            name="product/[id]"
+            options={{ presentation: "modal", headerShown: false }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

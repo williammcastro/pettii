@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchProductsForPrimaryClinic } from "./api";
+import { fetchProductById, fetchProductsForPrimaryClinic } from "./api";
 
 export function useProductsForPrimaryClinic(
   userId?: string,
@@ -9,5 +9,13 @@ export function useProductsForPrimaryClinic(
     queryKey: ["products", "primary", userId],
     queryFn: () => fetchProductsForPrimaryClinic(userId!),
     enabled: !!userId && enabled,
+  });
+}
+
+export function useProductById(productId?: string) {
+  return useQuery({
+    queryKey: ["products", "by-id", productId],
+    queryFn: () => fetchProductById(productId!),
+    enabled: !!productId,
   });
 }
