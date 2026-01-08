@@ -138,6 +138,29 @@ export async function createPostWithMedia(input: {
   return data;
 }
 
+export async function deletePostWithMedia(input: {
+  id: string;
+  storage_bucket?: string | null;
+  storage_path?: string | null;
+  pet_id?: string | null;
+}) {
+  const { error: deleteError } = await supabase
+    .from("posts")
+    .delete()
+    .eq("id", input.id);
+
+  if (deleteError) throw deleteError;
+
+  if (input.storage_bucket && input.storage_path) {
+    const { error: storageError } = await supabase.storage
+      .from(input.storage_bucket)
+      .remove([input.storage_path]);
+    if (storageError) {
+      // The DB record is already removed; ignore storage errors here.
+    }
+  }
+}
+
 export async function followPet(input: {
   follower_pet_id: string;
   followed_pet_id: string;

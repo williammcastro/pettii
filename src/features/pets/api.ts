@@ -74,13 +74,57 @@ export async function updatePetProfile(input: {
   pet_id: string;
   status?: string | null;
   avatar_url?: string | null;
+  name?: string | null;
+  species?: string | null;
+  breed?: string | null;
+  birthdate?: string | null;
+  sex?: string | null;
+  weight_kg?: number | null;
+  last_vaccine_at?: string | null;
+  last_deworming_at?: string | null;
+  sterilized?: boolean | null;
+  allergies?: string | null;
+  chronic_conditions?: string | null;
 }): Promise<Pet> {
-  const updates: Record<string, string | null> = {};
+  const updates: Record<string, string | number | boolean | null> = {};
   if (input.status !== undefined) {
     updates.status = input.status ?? null;
   }
   if (input.avatar_url !== undefined) {
     updates.avatar_url = input.avatar_url ?? null;
+  }
+  if (input.name !== undefined) {
+    updates.name = input.name ?? null;
+  }
+  if (input.species !== undefined) {
+    updates.species = input.species ?? null;
+  }
+  if (input.breed !== undefined) {
+    updates.breed = input.breed ?? null;
+  }
+  if (input.birthdate !== undefined) {
+    updates.birthdate = input.birthdate ?? null;
+  }
+  if (input.sex !== undefined) {
+    updates.sex = input.sex ?? null;
+  }
+  if (input.weight_kg !== undefined) {
+    updates.weight_kg = input.weight_kg ?? null;
+  }
+  if (input.last_vaccine_at !== undefined) {
+    updates.last_vaccine_at = input.last_vaccine_at ?? null;
+  }
+  if (input.last_deworming_at !== undefined) {
+    updates.last_deworming_at = input.last_deworming_at ?? null;
+  }
+  if (input.sterilized !== undefined) {
+    updates.sterilized = input.sterilized ?? null;
+  }
+  if (input.allergies !== undefined) {
+    updates.allergies = input.allergies ?? null;
+  }
+  if (input.chronic_conditions !== undefined) {
+    updates.chronic_conditions = input.chronic_conditions ?? null;
   }
 
   const { data, error } = await supabase

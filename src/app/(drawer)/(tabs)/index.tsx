@@ -1,7 +1,8 @@
 import { usePets, usePetStats } from "@/features/pets/hooks";
-import { useCreatePetPost, usePetPosts } from "@/features/posts/hooks";
+import { useCreatePetPost, useDeletePetPost, usePetPosts } from "@/features/posts/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
+import { PostWithMedia } from "@/types/post";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -27,9 +28,11 @@ export default function HomeScreen() {
     selectedPetId ?? undefined
   );
   const { mutateAsync, isPending } = useCreatePetPost();
+  const { mutateAsync: deletePostAsync, isPending: isDeleting } =
+    useDeletePetPost();
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [imageCache, setImageCache] = useState<Record<string, string>>({});
-  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
+  const [activePost, setActivePost] = useState<PostWithMedia | null>(null);
 
   // Redirección si no hay usuario
   useEffect(() => {
@@ -80,6 +83,7 @@ export default function HomeScreen() {
       mime_type: asset.mimeType ?? undefined,
     });
   };
+
 
   return (
     <View style={styles.container}>
@@ -162,13 +166,14 @@ export default function HomeScreen() {
       )}
 
       {!isLoading && selectedPet && (
-        <View
-          style={styles.petInfoCard}
+        <Pressable
+          onPress={() => router.push("/pet/record")}
+          style={styles.petDetailsButton}
         >
-          <Text style={styles.petName}>{selectedPet.name}</Text>
-          <Text style={styles.petDetail}>{selectedPet.species}</Text>
-          <Text style={styles.petDetail}>{selectedPet.breed}</Text>
-        </View>
+          <Text style={styles.petDetailsButtonText}>
+            Ficha de {selectedPet.name}
+          </Text>
+        </Pressable>
       )}
 
       <View style={styles.sectionSpacer} />
@@ -208,6 +213,7 @@ export default function HomeScreen() {
                 mediaUrl={item.media_url}
                 cache={imageCache}
                 setCache={setImageCache}
+                onPress={() => setActivePost(item)}
               />
             ) : item.media_type === "video" ? (
               <VideoThumbnail
@@ -216,7 +222,7 @@ export default function HomeScreen() {
                 thumbs={thumbs}
                 setThumbs={setThumbs}
                 onPress={() => {
-                  if (item.media_url) setActiveVideoUrl(item.media_url);
+                  setActivePost(item);
                 }}
               />
             ) : (
@@ -230,10 +236,38 @@ export default function HomeScreen() {
         )}
       />
 
-      <VideoModal
-        url={activeVideoUrl}
-        onClose={() => setActiveVideoUrl(null)}
-      />
+      {activePost?.media_type === "video" ? (
+        <VideoModal
+          post={activePost}
+          isDeleting={isDeleting}
+          onClose={() => setActivePost(null)}
+          onDelete={async () => {
+            await deletePostAsync({
+              id: activePost.id,
+              pet_id: activePost.pet_id,
+              storage_bucket: activePost.storage_bucket,
+              storage_path: activePost.storage_path,
+            });
+            setActivePost(null);
+          }}
+        />
+      ) : (
+        <ImageModal
+          post={activePost}
+          isDeleting={isDeleting}
+          onClose={() => setActivePost(null)}
+          onDelete={async () => {
+            if (!activePost) return;
+            await deletePostAsync({
+              id: activePost.id,
+              pet_id: activePost.pet_id,
+              storage_bucket: activePost.storage_bucket,
+              storage_path: activePost.storage_path,
+            });
+            setActivePost(null);
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -284,8 +318,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
   },
-  petName: { fontSize: 18, fontWeight: "700" },
-  petDetail: { color: "#333" },
+  petDetailsButton: {
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#eee",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  petDetailsButtonText: { fontWeight: "600" },
   sectionSpacer: { height: 20 },
   galleryHeader: {
     flexDirection: "row",
@@ -426,10 +468,12 @@ function CachedMediaImage({
   mediaUrl,
   cache,
   setCache,
+  onPress,
 }: {
   mediaUrl: string;
   cache: Record<string, string>;
   setCache: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onPress?: () => void;
 }) {
   useEffect(() => {
     let active = true;
@@ -468,13 +512,23 @@ function CachedMediaImage({
 
   const uri = cache[mediaUrl] ?? mediaUrl;
 
-  return (
+  const content = (
     <Image
       source={{ uri }}
       style={{ width: "100%", height: "100%" }}
       resizeMode="cover"
     />
   );
+
+  if (onPress) {
+    return (
+      <Pressable onPress={onPress} style={{ width: "100%", height: "100%" }}>
+        {content}
+      </Pressable>
+    );
+  }
+
+  return content;
 }
 
 function hashString(value: string) {
@@ -533,13 +587,18 @@ async function storeMedia(mediaUrl: string) {
 }
 
 function VideoModal({
-  url,
+  post,
+  isDeleting,
   onClose,
+  onDelete,
 }: {
-  url: string | null;
+  post: PostWithMedia | null;
+  isDeleting: boolean;
   onClose: () => void;
+  onDelete: () => void;
 }) {
-  const player = useVideoPlayer(url ?? "", (p) => {
+  const url = post?.media_url ?? "";
+  const player = useVideoPlayer(url, (p) => {
     p.loop = false;
     if (url) p.play();
   });
@@ -553,7 +612,7 @@ function VideoModal({
   }, [player, url]);
 
   return (
-    <Modal visible={!!url} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={!!post} animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         <VideoView
           player={player}
@@ -562,20 +621,118 @@ function VideoModal({
           allowsPictureInPicture
           nativeControls
         />
-        <Pressable
-          onPress={onClose}
+        <View
           style={{
             position: "absolute",
             top: 40,
             right: 20,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            backgroundColor: "rgba(0,0,0,0.6)",
-            borderRadius: 8,
+            flexDirection: "row",
+            gap: 10,
           }}
         >
-          <Text style={{ color: "#fff", fontWeight: "600" }}>Cerrar</Text>
-        </Pressable>
+          <Pressable
+            onPress={onClose}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              backgroundColor: "rgba(0,0,0,0.6)",
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "600" }}>Cerrar</Text>
+          </Pressable>
+          <Pressable
+            onPress={onDelete}
+            disabled={isDeleting}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              backgroundColor: "rgba(220,20,60,0.8)",
+              borderRadius: 8,
+              opacity: isDeleting ? 0.7 : 1,
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "600" }}>
+              {isDeleting ? "Borrando..." : "Borrar"}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function ImageModal({
+  post,
+  isDeleting,
+  onClose,
+  onDelete,
+}: {
+  post: PostWithMedia | null;
+  isDeleting: boolean;
+  onClose: () => void;
+  onDelete: () => void;
+}) {
+  const url = post?.media_url ?? "";
+
+  return (
+    <Modal visible={!!post} animationType="slide" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: "#000" }}>
+        {url ? (
+          <Image
+            source={{ uri: url }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="contain"
+          />
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "600" }}>
+              Sin media
+            </Text>
+          </View>
+        )}
+        <View
+          style={{
+            position: "absolute",
+            top: 40,
+            right: 20,
+            flexDirection: "row",
+            gap: 10,
+          }}
+        >
+          <Pressable
+            onPress={onClose}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              backgroundColor: "rgba(0,0,0,0.6)",
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "600" }}>Cerrar</Text>
+          </Pressable>
+          <Pressable
+            onPress={onDelete}
+            disabled={isDeleting}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              backgroundColor: "rgba(220,20,60,0.8)",
+              borderRadius: 8,
+              opacity: isDeleting ? 0.7 : 1,
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "600" }}>
+              {isDeleting ? "Borrando..." : "Borrar"}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </Modal>
   );

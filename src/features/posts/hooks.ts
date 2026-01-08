@@ -7,6 +7,7 @@ import {
   followPet,
   unfollowPet,
   checkFollowStatus,
+  deletePostWithMedia,
 } from "./api";
 
 export function usePetPosts(petId?: string) {
@@ -40,6 +41,25 @@ export function useCreatePetPost() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["posts", "pet", data.pet_id] });
       qc.invalidateQueries({ queryKey: ["posts", "feed"] });
+    },
+  });
+}
+
+export function useDeletePetPost() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: deletePostWithMedia,
+    onSuccess: (_data, variables) => {
+      if (variables.pet_id) {
+        qc.invalidateQueries({ queryKey: ["posts", "pet", variables.pet_id] });
+      } else {
+        qc.invalidateQueries({ queryKey: ["posts", "pet"] });
+      }
+      qc.invalidateQueries({ queryKey: ["posts", "feed"] });
+      if (variables.id) {
+        qc.invalidateQueries({ queryKey: ["post", variables.id] });
+      }
     },
   });
 }
