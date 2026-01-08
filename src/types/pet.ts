@@ -6,5 +6,7 @@ export type Pet = {
   breed?: string | null;
   birthdate?: string | null;
   avatar_url?: string | null;
+  avatar_signed_url?: string | null;
+  status?: string | null;
   created_at: string;
 };

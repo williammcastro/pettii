@@ -25,6 +25,10 @@ export default function RootLayout() {
             options={{ presentation: "modal", title: "Cambiar veterinaria" }}
           />
           <Stack.Screen
+            name="pet/edit"
+            options={{ presentation: "modal", title: "Editar perfil" }}
+          />
+          <Stack.Screen
             name="cart"
             options={{ presentation: "modal", title: "Carrito" }}
           />

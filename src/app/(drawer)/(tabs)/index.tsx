@@ -1,12 +1,12 @@
-import { usePets } from "@/features/pets/hooks";
+import { usePets, usePetStats } from "@/features/pets/hooks";
 import { useCreatePetPost, usePetPosts } from "@/features/posts/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
-import * as FileSystem from "expo-file-system/legacy";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -14,6 +14,7 @@ import {
   Image,
   Modal,
   Pressable,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -40,6 +41,8 @@ export default function HomeScreen() {
   const { data: pets, isLoading } = usePets(userId, !loading);
   const safePets = pets ?? []; // 👈 siempre es un array
   const selectedPet = safePets.find((pet) => pet.id === selectedPetId);
+  const { data: petStats } = usePetStats(selectedPet?.id);
+
 
   useEffect(() => {
     if (!loading && safePets.length > 0 && !selectedPetId) {
@@ -79,60 +82,108 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={{ flex: 1, padding: 30, paddingTop: 50 }}>
-      <Text style={{ fontSize: 24, fontWeight: "600" }}>Bienvenido 🐾</Text>
-      <Text style={{ marginBottom: 20 }}>Usuario: {user.email}</Text>
-
-      {isLoading && <Text>Cargando mascotas...</Text>}
+    <View style={styles.container}>
+      {isLoading && <Text style={styles.mutedText}>Cargando mascotas...</Text>}
 
       {!isLoading && safePets.length === 0 && (
-        <Text>No tienes mascotas registradas. ¡Agrega una!</Text>
+        <Text style={styles.mutedText}>
+          No tienes mascotas registradas. ¡Agrega una!
+        </Text>
       )}
 
       {!isLoading && safePets.length > 0 && !selectedPet && (
-        <Text>Selecciona una mascota desde el menú lateral.</Text>
+        <Text style={styles.mutedText}>
+          Selecciona una mascota desde el menú lateral.
+        </Text>
+      )}
+
+      {!isLoading && selectedPet && (
+        <>
+          <View
+            testID="pet_profile_card"
+            style={styles.profileCard}
+          >
+            <Pressable
+              onPress={() => router.push("/pet/edit")}
+              style={styles.profileAvatar}
+            >
+              {selectedPet.avatar_signed_url ||
+              (selectedPet.avatar_url?.startsWith("http")
+                ? selectedPet.avatar_url
+                : null) ? (
+                <Image
+                  source={{
+                    uri:
+                      selectedPet.avatar_signed_url ??
+                      (selectedPet.avatar_url?.startsWith("http")
+                        ? selectedPet.avatar_url
+                        : "") ??
+                      "",
+                  }}
+                  style={styles.profileAvatarImage}
+                />
+              ) : (
+                <Text style={styles.profileAvatarPlaceholder}>PET</Text>
+              )}
+            </Pressable>
+            <View style={styles.profileDetails}>
+              <Text style={styles.profileLabel}>Estado</Text>
+              <Text style={styles.profileStatus}>
+                {selectedPet.status ?? "Sin estado"}
+              </Text>
+              <View style={styles.profileStatsRow}>
+                <View style={styles.profileStat}>
+                  <Text style={styles.profileStatValue}>{petStats?.posts ?? 0}</Text>
+                  <Text style={styles.profileStatLabel}>Publicaciones</Text>
+                </View>
+                <View style={styles.profileStat}>
+                  <Text style={styles.profileStatValue}>
+                    {petStats?.followers ?? 0}
+                  </Text>
+                  <Text style={styles.profileStatLabel}>Seguidores</Text>
+                </View>
+                <View style={styles.profileStat}>
+                  <Text style={styles.profileStatValue}>
+                    {petStats?.following ?? 0}
+                  </Text>
+                  <Text style={styles.profileStatLabel}>Siguiendo</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <Pressable
+            onPress={() => router.push("/pet/edit")}
+            style={styles.editProfileButton}
+          >
+            <Text style={styles.editProfileText}>Editar perfil</Text>
+          </Pressable>
+        </>
       )}
 
       {!isLoading && selectedPet && (
         <View
-          style={{
-            padding: 16,
-            backgroundColor: "#eee",
-            borderRadius: 12,
-            marginBottom: 10,
-          }}
+          style={styles.petInfoCard}
         >
-          <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-            {selectedPet.name}
-          </Text>
-          <Text>{selectedPet.species}</Text>
-          <Text>{selectedPet.breed}</Text>
+          <Text style={styles.petName}>{selectedPet.name}</Text>
+          <Text style={styles.petDetail}>{selectedPet.species}</Text>
+          <Text style={styles.petDetail}>{selectedPet.breed}</Text>
         </View>
       )}
 
-      <View style={{ height: 20 }} />
+      <View style={styles.sectionSpacer} />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
-        <Text style={{ fontSize: 18, fontWeight: "600" }}>Galería</Text>
+      <View style={styles.galleryHeader}>
+        <Text style={styles.galleryTitle}>Galería</Text>
         <Pressable
           onPress={handlePickMedia}
           disabled={isPending || !selectedPetId}
-          style={{
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            backgroundColor: "#0a7ea4",
-            borderRadius: 8,
-            opacity: isPending || !selectedPetId ? 0.6 : 1,
-          }}
+          style={[
+            styles.uploadButton,
+            (isPending || !selectedPetId) && styles.uploadButtonDisabled,
+          ]}
         >
-          <Text style={{ color: "#fff", fontWeight: "600" }}>
+          <Text style={styles.uploadButtonText}>
             {isPending ? "Subiendo..." : "Subir"}
           </Text>
         </Pressable>
@@ -141,25 +192,17 @@ export default function HomeScreen() {
       {isPostsLoading && <ActivityIndicator />}
 
       {!isPostsLoading && (posts?.length ?? 0) === 0 && (
-        <Text>No hay publicaciones todavía.</Text>
+        <Text style={styles.mutedText}>No hay publicaciones todavía.</Text>
       )}
 
       <FlatList
         data={posts ?? []}
         keyExtractor={(item) => item.id}
         numColumns={3}
-        columnWrapperStyle={{ gap: 6 }}
-        contentContainerStyle={{ gap: 6, paddingBottom: 20 }}
+        columnWrapperStyle={styles.galleryRow}
+        contentContainerStyle={styles.galleryContent}
         renderItem={({ item }) => (
-          <View
-            style={{
-              flex: 1 / 3,
-              aspectRatio: 1,
-              backgroundColor: "#eee",
-              borderRadius: 8,
-              overflow: "hidden",
-            }}
-          >
+          <View style={styles.galleryTile}>
             {item.media_type === "image" && item.media_url ? (
               <CachedMediaImage
                 mediaUrl={item.media_url}
@@ -178,14 +221,9 @@ export default function HomeScreen() {
               />
             ) : (
               <View
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                style={styles.galleryEmpty}
               >
-                <Text style={{ color: "#666" }}>Sin media</Text>
+                <Text style={styles.galleryEmptyText}>Sin media</Text>
               </View>
             )}
           </View>
@@ -199,6 +237,88 @@ export default function HomeScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 30, paddingTop: 50 },
+  mutedText: { color: "#666" },
+  profileCard: {
+    padding: 16,
+    backgroundColor: "#f7f7f7",
+    borderRadius: 14,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  profileAvatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#e0e0e0",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  profileAvatarImage: { width: 72, height: 72, borderRadius: 36 },
+  profileAvatarPlaceholder: { fontWeight: "600", color: "#666" },
+  profileDetails: { flex: 1 },
+  profileLabel: { fontSize: 14, color: "#666" },
+  profileStatus: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
+  profileStatsRow: { flexDirection: "row", justifyContent: "space-between" },
+  profileStat: { alignItems: "center", flex: 1 },
+  profileStatValue: { fontWeight: "600" },
+  profileStatLabel: { color: "#666", fontSize: 12 },
+  editProfileButton: {
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#eee",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  editProfileText: { fontWeight: "600" },
+  petInfoCard: {
+    padding: 16,
+    backgroundColor: "#eee",
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  petName: { fontSize: 18, fontWeight: "700" },
+  petDetail: { color: "#333" },
+  sectionSpacer: { height: 20 },
+  galleryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  galleryTitle: { fontSize: 18, fontWeight: "600" },
+  uploadButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "#0a7ea4",
+    borderRadius: 8,
+  },
+  uploadButtonDisabled: { opacity: 0.6 },
+  uploadButtonText: { color: "#fff", fontWeight: "600" },
+  galleryRow: { gap: 6 },
+  galleryContent: { gap: 6, paddingBottom: 20 },
+  galleryTile: {
+    flex: 1 / 3,
+    aspectRatio: 1,
+    backgroundColor: "#eee",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  galleryEmpty: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  galleryEmptyText: { color: "#666" },
+});
 
 function VideoThumbnail({
   postId,
