@@ -131,7 +131,9 @@ export default function HomeScreen() {
               )}
             </Pressable>
             <View style={styles.profileDetails}>
-              <Text style={styles.profileLabel}>Estado</Text>
+              <Text style={styles.profileName}>
+                {selectedPet.name}
+              </Text>
               <Text style={styles.profileStatus}>
                 {selectedPet.status ?? "Sin estado"}
               </Text>
@@ -273,10 +275,10 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 30, paddingTop: 50 },
+  container: { flex: 1, padding: 22, paddingTop: 10 },
   mutedText: { color: "#666" },
   profileCard: {
-    padding: 16,
+    padding: 11,
     backgroundColor: "#f7f7f7",
     borderRadius: 14,
     marginBottom: 12,
@@ -296,8 +298,8 @@ const styles = StyleSheet.create({
   profileAvatarImage: { width: 72, height: 72, borderRadius: 36 },
   profileAvatarPlaceholder: { fontWeight: "600", color: "#666" },
   profileDetails: { flex: 1 },
-  profileLabel: { fontSize: 14, color: "#666" },
-  profileStatus: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
+  profileName: { fontSize: 16, fontWeight: "700", color: "#111" },
+  profileStatus: { fontSize: 14, color: "#666", marginBottom: 8 },
   profileStatsRow: { flexDirection: "row", justifyContent: "space-between" },
   profileStat: { alignItems: "center", flex: 1 },
   profileStatValue: { fontWeight: "600" },
@@ -617,7 +619,7 @@ function VideoModal({
         <VideoView
           player={player}
           style={{ width: "100%", height: "100%" }}
-          allowsFullscreen
+          fullscreenOptions={{ enable: true }}
           allowsPictureInPicture
           nativeControls
         />

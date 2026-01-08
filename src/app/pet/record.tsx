@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Pressable,
   ScrollView,
@@ -20,6 +21,7 @@ function formatDate(value?: string | null) {
 }
 
 export default function PetRecordModal() {
+  const insets = useSafeAreaInsets();
   const { user, loading } = useAuthStore();
   const petId = usePetSelectionStore((s) => s.selectedPetId);
   const { data: pet } = usePetById(petId ?? undefined);
@@ -116,7 +118,7 @@ export default function PetRecordModal() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, 20) }]}>
       <View style={styles.header}>
         <Text style={styles.title}>
           Ficha de {pet?.name ?? "mascota"}
