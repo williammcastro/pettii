@@ -1,14 +1,15 @@
 // src/app/(tabs)/index.tsx
+import { usePetById } from "@/features/pets/hooks";
 import {
   useFollowPet,
   useFollowStatus,
   usePublicFeedPosts,
   useUnfollowPet,
 } from "@/features/posts/hooks";
-import { usePetById } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
+import { VideoView, useVideoPlayer } from "expo-video";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,9 +17,8 @@ import {
   Image,
   Pressable,
   Text,
-  View,
+  View
 } from "react-native";
-import { VideoView, useVideoPlayer } from "expo-video";
 
 export default function SocialScreen() {
   const { user, loading } = useAuthStore();
@@ -61,8 +61,8 @@ export default function SocialScreen() {
   }
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
-      <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 12 }}>
+    <View style={{ flex: 1, padding: 1, backgroundColor: "#fff" }}>
+      <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 12, paddingLeft: 10, color: "#000" }}>
         Social
       </Text>
 
@@ -85,8 +85,8 @@ export default function SocialScreen() {
         renderItem={({ item }) => (
           <View
             style={{
-              backgroundColor: "#f2f2f2",
-              borderRadius: 12,
+              backgroundColor: "#fff",//backgroundColor de la card.
+              // borderRadius: 12,
               overflow: "hidden",
             }}
           >
@@ -162,11 +162,13 @@ function FeedVideo({ uri, isActive }: { uri: string; isActive: boolean }) {
   return (
     <VideoView
       player={player}
-      style={{ width: "100%", height: 260, backgroundColor: "#000" }}
-      allowsPictureInPicture
-      nativeControls
+      // style={{ width: "100%", height: 260, backgroundColor: "#000" }}
+      style={{ width: "100%", aspectRatio: 9 / 16, backgroundColor: "#000" }}
+      allowsPictureInPicture={false}
+      nativeControls={false}
       contentFit="cover"
-      fullscreenOptions={{ enable: true }}
+      fullscreenOptions={{ enable: false }}
+      // surfaceType={Platform.OS === "android" ? "textureView" : "surfaceView"}
     />
   );
 }
