@@ -237,3 +237,47 @@ export async function fetchPostLikeCount(postId: string): Promise<number> {
 
   return count ?? 0;
 }
+
+export async function fetchPostComments(postId: string) {
+  const { data, error } = await supabase
+    .from("post_comments")
+    .select("id, post_id, user_id, body, created_at")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+
+  return data ?? [];
+}
+
+export async function createPostComment(input: {
+  post_id: string;
+  user_id: string;
+  body: string;
+}) {
+  const { error } = await supabase.from("post_comments").insert(input);
+  if (error) throw error;
+}
+
+export async function fetchPostCommentCount(postId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("post_comments")
+    .select("id", { count: "exact", head: true })
+    .eq("post_id", postId);
+
+  if (error) throw error;
+
+  return count ?? 0;
+}
+
+export async function fetchProfilesByIds(userIds: string[]) {
+  if (userIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, email")
+    .in("id", userIds);
+
+  if (error) throw error;
+
+  return data ?? [];
+}

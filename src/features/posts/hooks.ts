@@ -12,6 +12,10 @@ import {
   likePost,
   unlikePost,
   fetchPostLikeCount,
+  fetchPostComments,
+  createPostComment,
+  fetchPostCommentCount,
+  fetchProfilesByIds,
 } from "./api";
 
 export function usePetPosts(petId?: string) {
@@ -160,5 +164,44 @@ export function usePostLikeCount(postId?: string) {
     queryKey: ["post-like-count", postId],
     queryFn: () => fetchPostLikeCount(postId!),
     enabled: !!postId,
+  });
+}
+
+export function usePostComments(postId?: string) {
+  return useQuery({
+    queryKey: ["post-comments", postId],
+    queryFn: () => fetchPostComments(postId!),
+    enabled: !!postId,
+  });
+}
+
+export function useCreatePostComment() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: createPostComment,
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["post-comments", variables.post_id] });
+      qc.invalidateQueries({
+        queryKey: ["post-comment-count", variables.post_id],
+      });
+    },
+  });
+}
+
+export function usePostCommentCount(postId?: string) {
+  return useQuery({
+    queryKey: ["post-comment-count", postId],
+    queryFn: () => fetchPostCommentCount(postId!),
+    enabled: !!postId,
+  });
+}
+
+export function useProfilesByIds(userIds: string[]) {
+  const sortedIds = [...userIds].sort();
+  return useQuery({
+    queryKey: ["profiles", sortedIds],
+    queryFn: () => fetchProfilesByIds(sortedIds),
+    enabled: sortedIds.length > 0,
   });
 }

@@ -6,6 +6,10 @@ import {
   useLikePost,
   usePostLikeCount,
   usePostLikeStatus,
+  usePostCommentCount,
+  usePostComments,
+  useCreatePostComment,
+  useProfilesByIds,
   usePublicFeedPosts,
   useUnfollowPet,
   useUnlikePost,
@@ -20,9 +24,13 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View
 } from "react-native";
 
@@ -33,6 +41,7 @@ export default function SocialScreen() {
   const followMutation = useFollowPet();
   const unfollowMutation = useUnfollowPet();
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const [activeCommentsPostId, setActiveCommentsPostId] = useState<string | null>(null);
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: Array<{ item: any }> }) => {
@@ -135,12 +144,23 @@ export default function SocialScreen() {
                 <Text style={{ fontWeight: "600" }}>Video</Text>
               </View>
             )}
-            <PostActions postId={item.id} userId={user.id} />
+            <PostActions
+              postId={item.id}
+              userId={user.id}
+              onOpenComments={() => {
+                setActiveCommentsPostId(item.id);
+              }}
+            />
             {item.caption && (
               <Text style={{ padding: 12 }}>{item.caption}</Text>
             )}
           </View>
         )}
+      />
+      <CommentsModal
+        postId={activeCommentsPostId}
+        userId={user.id}
+        onClose={() => setActiveCommentsPostId(null)}
       />
     </View>
   );
@@ -300,7 +320,7 @@ function RecommendedHeader({
         }}
       >
         <Text style={{ fontSize: 20, fontWeight: "600", color: "#000" }}>
-          Explorar
+          Recomendados
         </Text>
         <ScrollView
           horizontal
@@ -373,12 +393,15 @@ function PetMini({ petId }: { petId: string }) {
 function PostActions({
   postId,
   userId,
+  onOpenComments,
 }: {
   postId: string;
   userId: string;
+  onOpenComments: () => void;
 }) {
   const { data: isLiked, isLoading } = usePostLikeStatus(postId, userId);
   const { data: likeCount } = usePostLikeCount(postId);
+  const { data: commentCount } = usePostCommentCount(postId);
   const likeMutation = useLikePost();
   const unlikeMutation = useUnlikePost();
 
@@ -398,20 +421,158 @@ function PostActions({
         paddingVertical: 10,
       }}
     >
-      <Pressable
-        onPress={toggleLike}
-        disabled={isLoading || likeMutation.isPending || unlikeMutation.isPending}
-        style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6 }}
-      >
-        <MaterialCommunityIcons
-          name={isLiked ? "heart" : "heart-outline"}
-          size={24}
-          color={isLiked ? "#000" : "#333"}
-        />
-        <Text style={{ color: "#333", fontWeight: "600" }}>
-          {likeCount ?? 0}
-        </Text>
-      </Pressable>
+      <View style={{ flexDirection: "row", gap: 16 }}>
+        <Pressable
+          onPress={toggleLike}
+          disabled={isLoading || likeMutation.isPending || unlikeMutation.isPending}
+          style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+        >
+          <MaterialCommunityIcons
+            name={isLiked ? "heart" : "heart-outline"}
+            size={24}
+            color={isLiked ? "#000" : "#333"}
+          />
+          <Text style={{ color: "#333", fontWeight: "600" }}>
+            {likeCount ?? 0}
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={onOpenComments}
+          style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+        >
+          <MaterialCommunityIcons name="comment-outline" size={24} color="#333" />
+          <Text style={{ color: "#333", fontWeight: "600" }}>
+            {commentCount ?? 0}
+          </Text>
+        </Pressable>
+      </View>
     </View>
+  );
+}
+
+type CommentsModalProps = {
+  postId: string | null;
+  userId: string;
+  onClose: () => void;
+};
+
+function CommentsModal({
+  postId,
+  userId,
+  onClose,
+}: CommentsModalProps) {
+  const { data: comments, isLoading } = usePostComments(postId ?? undefined);
+  const commentUserIds = useMemo(() => {
+    const ids = (comments ?? []).map((comment) => comment.user_id);
+    return Array.from(new Set(ids));
+  }, [comments]);
+  const { data: profiles } = useProfilesByIds(commentUserIds);
+  const createComment = useCreatePostComment();
+  const [text, setText] = useState("");
+  const profileById = useMemo(() => {
+    const map = new Map<string, { full_name?: string | null; email?: string | null }>();
+    for (const profile of profiles ?? []) {
+      map.set(profile.id, profile);
+    }
+    return map;
+  }, [profiles]);
+
+  const handleSend = async () => {
+    const body = text.trim();
+    if (!postId || body.length === 0) return;
+    await createComment.mutateAsync({ post_id: postId, user_id: userId, body });
+    setText("");
+  };
+
+  return (
+    <Modal
+      visible={!!postId}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <KeyboardAvoidingView
+        style={{
+          flex: 1,
+          justifyContent: "flex-end",
+          backgroundColor: "rgba(0,0,0,0.35)",
+        }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 0}
+      >
+        <View
+          style={{
+            maxHeight: "75%",
+            backgroundColor: "#fff",
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            padding: 16,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 12,
+            }}
+          >
+            <Text style={{ fontSize: 16, fontWeight: "700" }}>
+              Comentarios
+            </Text>
+            <Pressable onPress={onClose}>
+              <Text style={{ fontWeight: "600" }}>Cerrar</Text>
+            </Pressable>
+          </View>
+          {isLoading && <ActivityIndicator />}
+          <FlatList
+            data={comments ?? []}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ gap: 10, paddingBottom: 12 }}
+            renderItem={({ item }) => (
+              <View>
+                <Text style={{ fontWeight: "600", color: "#111" }}>
+                  {item.user_id === userId
+                    ? "Tú"
+                    : profileById.get(item.user_id)?.full_name ||
+                      profileById.get(item.user_id)?.email ||
+                      "Usuario"}
+                </Text>
+                <Text style={{ color: "#333" }}>{item.body}</Text>
+              </View>
+            )}
+          />
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 8,
+              alignItems: "center",
+              borderTopWidth: 1,
+              borderTopColor: "#eee",
+              paddingTop: 10,
+            }}
+          >
+            <TextInput
+              value={text}
+              onChangeText={setText}
+              placeholder="Escribe un comentario"
+              style={{
+                flex: 1,
+                borderWidth: 1,
+                borderColor: "#ddd",
+                borderRadius: 10,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+            />
+            <Pressable onPress={handleSend}>
+              <Text style={{ color: "#0a7ea4", fontWeight: "700" }}>
+                Enviar
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
