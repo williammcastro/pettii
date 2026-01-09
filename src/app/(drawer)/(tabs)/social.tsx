@@ -204,7 +204,42 @@ function PetHeader({
         borderBottomColor: "#e4e4e4",
       }}
     >
-      <Text style={{ fontWeight: "600" }}>{pet?.name ?? "Mascota"}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        {pet?.avatar_signed_url ||
+        (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null) ? (
+          <Image
+            source={{
+              uri:
+                pet?.avatar_signed_url ??
+                (pet?.avatar_url?.startsWith("http")
+                  ? pet.avatar_url
+                  : ""),
+            }}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: "#eee",
+            }}
+          />
+        ) : (
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: "#eee",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: "600", color: "#666" }}>
+              PET
+            </Text>
+          </View>
+        )}
+        <Text style={{ fontWeight: "600" }}>{pet?.name ?? "Mascota"}</Text>
+      </View>
       {showActions && !isLoading && (
         <Pressable
           onPress={() =>
