@@ -26,6 +26,10 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
 
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.container}>
+      <Text style={styles.sectionTitle}>Usuario</Text>
+      <Text style={styles.userEmail}>{user?.email ?? "Sin email"}</Text>
+      <View style={styles.divider} />
+
       <Text style={styles.title}>Mascotas</Text>
 
       {!loading && isLoading && <Text style={styles.muted}>Cargando mascotas...</Text>}
@@ -60,6 +64,16 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
         );
       })}
 
+      <Pressable
+        style={styles.actionButton}
+        onPress={() => {
+          props.navigation.closeDrawer();
+          router.push("/pet/create");
+        }}
+      >
+        <Text style={styles.actionText}>Agregar mascota</Text>
+      </Pressable>
+
       <View style={styles.divider} />
 
       <Text style={styles.sectionTitle}>Veterinaria</Text>
@@ -74,16 +88,6 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
       </Pressable>
 
       <View style={styles.divider} />
-
-      <Pressable
-        style={styles.actionButton}
-        onPress={() => {
-          props.navigation.closeDrawer();
-          router.push("/pet/create");
-        }}
-      >
-        <Text style={styles.actionText}>Agregar mascota</Text>
-      </Pressable>
 
       <Pressable
         style={[styles.actionButton, styles.signOutButton]}
@@ -102,6 +106,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
+    marginBottom: 12,
+  },
+  userEmail: {
+    color: "#333",
     marginBottom: 12,
   },
   sectionTitle: {
