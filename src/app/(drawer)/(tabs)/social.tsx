@@ -15,12 +15,13 @@ import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { VideoView, useVideoPlayer } from "expo-video";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
   Pressable,
+  ScrollView,
   Text,
   View
 } from "react-native";
@@ -67,10 +68,6 @@ export default function SocialScreen() {
 
   return (
     <View style={{ flex: 1, padding: 1, backgroundColor: "#fff" }}>
-      <Text style={{ fontSize: 20, fontWeight: "600", marginBottom: 12, paddingLeft: 10, color: "#000" }}>
-        Social
-      </Text>
-
       {!selectedPetId && (
         <Text>Selecciona una mascota desde el menú lateral.</Text>
       )}
@@ -87,6 +84,7 @@ export default function SocialScreen() {
         contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
+        ListHeaderComponent={<RecommendedHeader posts={posts ?? []} />}
         renderItem={({ item }) => (
           <View
             style={{
@@ -268,6 +266,100 @@ function PetHeader({
           </Text>
         </Pressable>
       )}
+    </View>
+  );
+}
+
+function RecommendedHeader({
+  posts,
+}: {
+  posts: Array<{ pet_id: string }>;
+}) {
+  const petIds = useMemo(() => {
+    const unique = Array.from(new Set(posts.map((post) => post.pet_id)));
+    for (let i = unique.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [unique[i], unique[j]] = [unique[j], unique[i]];
+    }
+    return unique.slice(0, 5);
+  }, [posts]);
+
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+          paddingHorizontal: 10,
+          paddingTop: 4,
+          paddingBottom: 12,
+        }}
+      >
+        <Text style={{ fontSize: 20, fontWeight: "600", color: "#000" }}>
+          Recomendados
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 12, paddingRight: 10 }}
+        >
+          {petIds.map((petId) => (
+            <PetMini key={petId} petId={petId} />
+          ))}
+        </ScrollView>
+      </View>
+      <View
+        style={{
+          height: 1,
+          backgroundColor: "#ececec",
+          marginHorizontal: 10,
+        }}
+      />
+    </View>
+  );
+}
+
+function PetMini({ petId }: { petId: string }) {
+  const { data: pet } = usePetById(petId);
+  const avatarUrl =
+    pet?.avatar_signed_url ??
+    (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null);
+
+  return (
+    <View style={{ alignItems: "center", maxWidth: 64 }}>
+      {avatarUrl ? (
+        <Image
+          source={{ uri: avatarUrl }}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 21,
+            backgroundColor: "#eee",
+          }}
+        />
+      ) : (
+        <View
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 21,
+            backgroundColor: "#eee",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ fontSize: 11, fontWeight: "600", color: "#666" }}>
+            PET
+          </Text>
+        </View>
+      )}
+      <Text
+        style={{ fontSize: 11, marginTop: 4, color: "#111" }}
+        numberOfLines={1}
+      >
+        {pet?.name ?? "Mascota"}
+      </Text>
     </View>
   );
 }

@@ -3,9 +3,9 @@ import { usePrimaryClinic } from "@/features/clinics/hooks";
 import { useProductsForPrimaryClinic } from "@/features/products/hooks";
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect } from "react";
 import {
   FlatList,
@@ -245,19 +245,18 @@ const styles = StyleSheet.create({
   clinicName: { fontSize: 18, fontWeight: "600" },
   clinicSlogan: { color: "#666", marginTop: 4, fontSize: 14 },
   gridContent: { paddingBottom: 24 },
-  gridRow: { justifyContent: "space-between", marginBottom: 12 },
+  gridRow: { justifyContent: "flex-start", gap: 6, marginBottom: 12 },
   productCard: {
-    flex: 1,
-    padding: 12,
+    width: "32.5%",
+    padding: 4,
     borderRadius: 10,
     backgroundColor: "#f2f2f2",
-    marginHorizontal: 4,
     minHeight: 110,
   },
-  productImage: { width: "100%", height: 70, borderRadius: 8, marginBottom: 8 },
+  productImage: { width: "100%", height: 110, borderRadius: 8, marginBottom: 8 },
   productImagePlaceholder: {
     width: "100%",
-    height: 70,
+    height: 110,
     borderRadius: 8,
     marginBottom: 8,
     backgroundColor: "#e0e0e0",
