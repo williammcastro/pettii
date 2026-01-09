@@ -196,3 +196,44 @@ export async function checkFollowStatus(input: {
 
   return !!data;
 }
+
+export async function checkPostLikeStatus(input: {
+  post_id: string;
+  user_id: string;
+}): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("post_likes")
+    .select("post_id")
+    .eq("post_id", input.post_id)
+    .eq("user_id", input.user_id)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return !!data;
+}
+
+export async function likePost(input: { post_id: string; user_id: string }) {
+  const { error } = await supabase.from("post_likes").insert(input);
+  if (error) throw error;
+}
+
+export async function unlikePost(input: { post_id: string; user_id: string }) {
+  const { error } = await supabase
+    .from("post_likes")
+    .delete()
+    .eq("post_id", input.post_id)
+    .eq("user_id", input.user_id);
+  if (error) throw error;
+}
+
+export async function fetchPostLikeCount(postId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("post_likes")
+    .select("post_id", { count: "exact", head: true })
+    .eq("post_id", postId);
+
+  if (error) throw error;
+
+  return count ?? 0;
+}

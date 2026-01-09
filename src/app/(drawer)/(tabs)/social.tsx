@@ -3,12 +3,17 @@ import { usePetById } from "@/features/pets/hooks";
 import {
   useFollowPet,
   useFollowStatus,
+  useLikePost,
+  usePostLikeCount,
+  usePostLikeStatus,
+  useUnlikePost,
   usePublicFeedPosts,
   useUnfollowPet,
 } from "@/features/posts/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -132,6 +137,7 @@ export default function SocialScreen() {
                 <Text style={{ fontWeight: "600" }}>Video</Text>
               </View>
             )}
+            <PostActions postId={item.id} userId={user.id} />
             {item.caption && (
               <Text style={{ padding: 12 }}>{item.caption}</Text>
             )}
@@ -246,17 +252,68 @@ function PetHeader({
             isFollowing ? onUnfollow(petId) : onFollow(petId)
           }
           style={{
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderRadius: 8,
-            backgroundColor: isFollowing ? "#eee" : "#0a7ea4",
+            paddingHorizontal: 0,
+            paddingVertical: 0,
+            borderRadius: 0,
+            backgroundColor: "transparent",
           }}
         >
-          <Text style={{ color: isFollowing ? "#333" : "#fff" }}>
+          <Text
+            style={{
+              color: isFollowing ? "#111" : "#0a7ea4",
+              fontWeight: isFollowing ? "700" : "600",
+            }}
+          >
             {isFollowing ? "Siguiendo" : "Seguir"}
           </Text>
         </Pressable>
       )}
+    </View>
+  );
+}
+
+function PostActions({
+  postId,
+  userId,
+}: {
+  postId: string;
+  userId: string;
+}) {
+  const { data: isLiked, isLoading } = usePostLikeStatus(postId, userId);
+  const { data: likeCount } = usePostLikeCount(postId);
+  const likeMutation = useLikePost();
+  const unlikeMutation = useUnlikePost();
+
+  const toggleLike = async () => {
+    if (isLoading) return;
+    if (isLiked) {
+      await unlikeMutation.mutateAsync({ post_id: postId, user_id: userId });
+    } else {
+      await likeMutation.mutateAsync({ post_id: postId, user_id: userId });
+    }
+  };
+
+  return (
+    <View
+      style={{
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+      }}
+    >
+      <Pressable
+        onPress={toggleLike}
+        disabled={isLoading || likeMutation.isPending || unlikeMutation.isPending}
+        style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6 }}
+      >
+        <MaterialCommunityIcons
+          name={isLiked ? "heart" : "heart-outline"}
+          size={24}
+          color={isLiked ? "#000" : "#333"}
+        />
+        <Text style={{ color: "#333", fontWeight: "600" }}>
+          {likeCount ?? 0}
+        </Text>
+      </Pressable>
     </View>
   );
 }

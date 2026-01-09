@@ -8,6 +8,10 @@ import {
   unfollowPet,
   checkFollowStatus,
   deletePostWithMedia,
+  checkPostLikeStatus,
+  likePost,
+  unlikePost,
+  fetchPostLikeCount,
 } from "./api";
 
 export function usePetPosts(petId?: string) {
@@ -112,5 +116,49 @@ export function useUnfollowPet() {
       });
       qc.invalidateQueries({ queryKey: ["posts", "feed"] });
     },
+  });
+}
+
+export function usePostLikeStatus(postId?: string, userId?: string) {
+  return useQuery({
+    queryKey: ["post-like", postId, userId],
+    queryFn: () => checkPostLikeStatus({ post_id: postId!, user_id: userId! }),
+    enabled: !!postId && !!userId,
+  });
+}
+
+export function useLikePost() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: likePost,
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["post-like", variables.post_id, variables.user_id],
+      });
+      qc.invalidateQueries({ queryKey: ["post-like-count", variables.post_id] });
+    },
+  });
+}
+
+export function useUnlikePost() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: unlikePost,
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["post-like", variables.post_id, variables.user_id],
+      });
+      qc.invalidateQueries({ queryKey: ["post-like-count", variables.post_id] });
+    },
+  });
+}
+
+export function usePostLikeCount(postId?: string) {
+  return useQuery({
+    queryKey: ["post-like-count", postId],
+    queryFn: () => fetchPostLikeCount(postId!),
+    enabled: !!postId,
   });
 }
