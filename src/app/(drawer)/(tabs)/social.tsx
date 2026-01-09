@@ -1,14 +1,14 @@
 // src/app/(tabs)/index.tsx
 import { usePetById } from "@/features/pets/hooks";
 import {
+  useCreatePostComment,
   useFollowPet,
   useFollowStatus,
   useLikePost,
-  usePostLikeCount,
-  usePostLikeStatus,
   usePostCommentCount,
   usePostComments,
-  useCreatePostComment,
+  usePostLikeCount,
+  usePostLikeStatus,
   useProfilesByIds,
   usePublicFeedPosts,
   useUnfollowPet,
@@ -320,7 +320,7 @@ function RecommendedHeader({
         }}
       >
         <Text style={{ fontSize: 20, fontWeight: "600", color: "#000" }}>
-          Recomendados
+          Explorar
         </Text>
         <ScrollView
           horizontal
