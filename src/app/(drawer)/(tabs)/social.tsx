@@ -6,14 +6,14 @@ import {
   useLikePost,
   usePostLikeCount,
   usePostLikeStatus,
-  useUnlikePost,
   usePublicFeedPosts,
   useUnfollowPet,
+  useUnlikePost,
 } from "@/features/posts/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
-import { router } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -208,7 +208,10 @@ function PetHeader({
         borderBottomColor: "#e4e4e4",
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <Pressable
+        onPress={() => router.push(`/pet/${petId}`)}
+        style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+      >
         {pet?.avatar_signed_url ||
         (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null) ? (
           <Image
@@ -243,7 +246,7 @@ function PetHeader({
           </View>
         )}
         <Text style={{ fontWeight: "600" }}>{pet?.name ?? "Mascota"}</Text>
-      </View>
+      </Pressable>
       {showActions && !isLoading && (
         <Pressable
           onPress={() =>
@@ -297,7 +300,7 @@ function RecommendedHeader({
         }}
       >
         <Text style={{ fontSize: 20, fontWeight: "600", color: "#000" }}>
-          Recomendados
+          Explorar
         </Text>
         <ScrollView
           horizontal
@@ -327,7 +330,10 @@ function PetMini({ petId }: { petId: string }) {
     (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null);
 
   return (
-    <View style={{ alignItems: "center", maxWidth: 64 }}>
+    <Pressable
+      onPress={() => router.push(`/pet/${petId}`)}
+      style={{ alignItems: "center", maxWidth: 64 }}
+    >
       {avatarUrl ? (
         <Image
           source={{ uri: avatarUrl }}
@@ -360,7 +366,7 @@ function PetMini({ petId }: { petId: string }) {
       >
         {pet?.name ?? "Mascota"}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
