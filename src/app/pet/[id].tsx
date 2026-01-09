@@ -30,6 +30,7 @@ export default function PetProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const selectedPetId = usePetSelectionStore((s) => s.selectedPetId);
+  const selectedPetName = usePetSelectionStore((s) => s.selectedPetName);
   const { data: pet, isLoading: isPetLoading } = usePetById(petId || undefined);
   const { data: stats } = usePetStats(petId || undefined);
   const { data: posts, isLoading: isPostsLoading } = usePetPosts(
@@ -53,10 +54,10 @@ export default function PetProfileScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: pet?.name ?? "Mascota",
+      title: selectedPetName ?? "Mascota",
       headerStatusBarHeight: Math.max(insets.top, 12),
     });
-  }, [navigation, pet?.name, insets.top]);
+  }, [navigation, selectedPetName, insets.top]);
 
   if (loading) {
     return (
