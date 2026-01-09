@@ -116,7 +116,7 @@ export default function SocialScreen() {
             {item.media_type === "image" && item.media_url ? (
               <Image
                 source={{ uri: item.media_url }}
-                style={{ width: "100%", height: 220 }}
+                style={{ width: "100%", aspectRatio: 9 / 16 }}
                 resizeMode="cover"
               />
             ) : item.media_type === "video" && item.media_url ? (

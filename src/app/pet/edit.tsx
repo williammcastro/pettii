@@ -4,6 +4,7 @@ import { usePetSelectionStore } from "@/store/pet-selection";
 import { supabase } from "@/lib/supabase";
 import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -74,9 +75,27 @@ export default function EditPetProfileModal() {
     if (result.canceled) return;
 
     const asset = result.assets[0];
-    setAvatarPreview(asset.uri);
-    setAvatarPath(asset.uri);
-    setAvatarBase64(asset.base64 ?? null);
+    try {
+      const actions = [];
+      if (asset.width && asset.width > 256) {
+        actions.push({ resize: { width: 256 } });
+      }
+      const manipulated = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        actions,
+        {
+          compress: 0.3,
+          format: ImageManipulator.SaveFormat.JPEG,
+        }
+      );
+      setAvatarPreview(manipulated.uri);
+      setAvatarPath(manipulated.uri);
+      setAvatarBase64(null);
+    } catch {
+      setAvatarPreview(asset.uri);
+      setAvatarPath(asset.uri);
+      setAvatarBase64(asset.base64 ?? null);
+    }
   };
 
   const handleSave = async () => {

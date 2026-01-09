@@ -3,7 +3,9 @@ import { useCreatePetPost, useDeletePetPost, usePetPosts } from "@/features/post
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { PostWithMedia } from "@/types/post";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import * as FileSystem from "expo-file-system/legacy";
+import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -30,6 +32,7 @@ export default function HomeScreen() {
   const { mutateAsync, isPending } = useCreatePetPost();
   const { mutateAsync: deletePostAsync, isPending: isDeleting } =
     useDeletePetPost();
+  const colorScheme = useColorScheme();
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [imageCache, setImageCache] = useState<Record<string, string>>({});
   const [activePost, setActivePost] = useState<PostWithMedia | null>(null);
@@ -75,12 +78,35 @@ export default function HomeScreen() {
     const mediaType =
       asset.type === "video" ? "video" : ("image" as const);
 
+    let uploadUri = asset.uri;
+    let uploadMimeType = asset.mimeType ?? undefined;
+    if (mediaType === "image") {
+      try {
+        const actions = [];
+        if (asset.width && asset.width > 1080) {
+          actions.push({ resize: { width: 1080 } });
+        }
+        const manipulated = await ImageManipulator.manipulateAsync(
+          asset.uri,
+          actions,
+          {
+            compress: 0.3,
+            format: ImageManipulator.SaveFormat.JPEG,
+          }
+        );
+        uploadUri = manipulated.uri;
+        uploadMimeType = "image/jpeg";
+      } catch {
+        // fallback to original
+      }
+    }
+
     await mutateAsync({
       owner_user_id: userId,
       pet_id: selectedPetId,
       media_type: mediaType,
-      local_uri: asset.uri,
-      mime_type: asset.mimeType ?? undefined,
+      local_uri: uploadUri,
+      mime_type: uploadMimeType,
     });
   };
 
@@ -181,7 +207,14 @@ export default function HomeScreen() {
       <View style={styles.sectionSpacer} />
 
       <View style={styles.galleryHeader}>
-        <Text style={styles.galleryTitle}>Galería</Text>
+        <Text
+          style={[
+            styles.galleryTitle,
+            { color: colorScheme === "dark" ? "#fff" : "#111" },
+          ]}
+        >
+          Galería
+        </Text>
         <Pressable
           onPress={handlePickMedia}
           disabled={isPending || !selectedPetId}
@@ -190,8 +223,13 @@ export default function HomeScreen() {
             (isPending || !selectedPetId) && styles.uploadButtonDisabled,
           ]}
         >
-          <Text style={styles.uploadButtonText}>
-            {isPending ? "Subiendo..." : "Subir"}
+          <Text
+            style={[
+              styles.uploadButtonText,
+              { color: colorScheme === "dark" ? "#fff" : "#111" },
+            ]}
+          >
+            {isPending ? "..." : "+"}
           </Text>
         </Pressable>
       </View>
@@ -341,11 +379,11 @@ const styles = StyleSheet.create({
   uploadButton: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: "#0a7ea4",
+    backgroundColor: "transparent",
     borderRadius: 8,
   },
   uploadButtonDisabled: { opacity: 0.6 },
-  uploadButtonText: { color: "#fff", fontWeight: "600" },
+  uploadButtonText: { color: "#111", fontWeight: "700", fontSize: 26 },
   galleryRow: { gap: 6 },
   galleryContent: { gap: 6, paddingBottom: 20 },
   galleryTile: {
