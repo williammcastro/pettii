@@ -13,6 +13,7 @@ import * as VideoThumbnails from "expo-video-thumbnails";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -33,6 +34,7 @@ export default function HomeScreen() {
   const { mutateAsync: deletePostAsync, isPending: isDeleting } =
     useDeletePetPost();
   const colorScheme = useColorScheme();
+  const [isPickingMedia, setIsPickingMedia] = useState(false);
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [imageCache, setImageCache] = useState<Record<string, string>>({});
   const [activePost, setActivePost] = useState<PostWithMedia | null>(null);
@@ -61,53 +63,94 @@ export default function HomeScreen() {
 
   const handlePickMedia = async () => {
     if (!selectedPetId || !userId) return;
+    setIsPickingMedia(true);
 
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") return;
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") return;
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
-      allowsEditing: false,
-      quality: 0.9,
-      videoExportPreset: ImagePicker.VideoExportPreset.H264_960x540,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images", "videos"],
+        allowsEditing: false,
+        quality: 0.9,
+        videoExportPreset: ImagePicker.VideoExportPreset.H264_960x540,
+      });
 
-    if (result.canceled) return;
+      if (result.canceled) return;
 
-    const asset = result.assets[0];
-    const mediaType =
-      asset.type === "video" ? "video" : ("image" as const);
+      const asset = result.assets[0];
+      const mediaType =
+        asset.type === "video" ? "video" : ("image" as const);
 
-    let uploadUri = asset.uri;
-    let uploadMimeType = asset.mimeType ?? undefined;
-    if (mediaType === "image") {
-      try {
-        const actions = [];
-        if (asset.width && asset.width > 1080) {
-          actions.push({ resize: { width: 1080 } });
-        }
-        const manipulated = await ImageManipulator.manipulateAsync(
-          asset.uri,
-          actions,
-          {
-            compress: 0.3,
-            format: ImageManipulator.SaveFormat.JPEG,
-          }
+      if (mediaType === "video" && asset.duration && asset.duration > 60_000) {
+        Alert.alert(
+          "Video muy largo",
+          "El video debe durar máximo 1 minuto."
         );
-        uploadUri = manipulated.uri;
-        uploadMimeType = "image/jpeg";
-      } catch {
-        // fallback to original
+        return;
       }
-    }
 
-    await mutateAsync({
-      owner_user_id: userId,
-      pet_id: selectedPetId,
-      media_type: mediaType,
-      local_uri: uploadUri,
-      mime_type: uploadMimeType,
-    });
+      const maxBytes = 100 * 1024 * 1024;
+      let fileSize = asset.fileSize ?? null;
+      if (fileSize == null) {
+        const info = await FileSystem.getInfoAsync(asset.uri);
+        fileSize = info.exists ? info.size ?? null : null;
+      }
+      if (fileSize != null && fileSize > maxBytes) {
+        Alert.alert(
+          "Archivo muy pesado",
+          "El archivo supera 100MB. Intenta con un video más liviano."
+        );
+        return;
+      }
+
+      let uploadUri = asset.uri;
+      let uploadMimeType = asset.mimeType ?? undefined;
+      if (mediaType === "image") {
+        try {
+          const actions = [];
+          if (asset.width && asset.width > 1080) {
+            actions.push({ resize: { width: 1080 } });
+          }
+          const manipulated = await ImageManipulator.manipulateAsync(
+            asset.uri,
+            actions,
+            {
+              compress: 0.3,
+              format: ImageManipulator.SaveFormat.JPEG,
+            }
+          );
+          uploadUri = manipulated.uri;
+          uploadMimeType = "image/jpeg";
+        } catch {
+          // fallback to original
+        }
+      }
+
+      try {
+        await mutateAsync({
+          owner_user_id: userId,
+          pet_id: selectedPetId,
+          media_type: mediaType,
+          local_uri: uploadUri,
+          mime_type: uploadMimeType,
+        });
+      } catch (error: any) {
+        const message = error?.message ?? "No se pudo subir el archivo.";
+        const isTooLarge =
+          message.toLowerCase().includes("too large") ||
+          message.toLowerCase().includes("payload") ||
+          message.toLowerCase().includes("exceed");
+        Alert.alert(
+          "Error al subir",
+          isTooLarge
+            ? "El archivo supera 100MB. Intenta con un video más liviano."
+            : message
+        );
+      }
+    } finally {
+      setIsPickingMedia(false);
+    }
   };
 
 
@@ -217,10 +260,11 @@ export default function HomeScreen() {
         </Text>
         <Pressable
           onPress={handlePickMedia}
-          disabled={isPending || !selectedPetId}
+          disabled={isPending || isPickingMedia || !selectedPetId}
           style={[
             styles.uploadButton,
-            (isPending || !selectedPetId) && styles.uploadButtonDisabled,
+            (isPending || isPickingMedia || !selectedPetId) &&
+              styles.uploadButtonDisabled,
           ]}
         >
           <Text
@@ -229,7 +273,7 @@ export default function HomeScreen() {
               { color: colorScheme === "dark" ? "#fff" : "#111" },
             ]}
           >
-            {isPending ? "..." : "+"}
+            +
           </Text>
         </Pressable>
       </View>
@@ -307,6 +351,15 @@ export default function HomeScreen() {
             setActivePost(null);
           }}
         />
+      )}
+
+      {(isPending || isPickingMedia) && (
+        <View style={styles.screenSpinner}>
+          <ActivityIndicator
+            size="large"
+            color={colorScheme === "dark" ? "#fff" : "#111"}
+          />
+        </View>
       )}
     </View>
   );
@@ -400,6 +453,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   galleryEmptyText: { color: "#666" },
+  screenSpinner: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
 });
 
 function VideoThumbnail({
