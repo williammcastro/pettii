@@ -82,12 +82,16 @@ export default function HomeScreen() {
       const mediaType =
         asset.type === "video" ? "video" : ("image" as const);
 
-      if (mediaType === "video" && asset.duration && asset.duration > 60_000) {
-        Alert.alert(
-          "Video muy largo",
-          "El video debe durar máximo 1 minuto."
-        );
-        return;
+      if (mediaType === "video" && asset.duration) {
+        const durationMs =
+          asset.duration <= 120 ? asset.duration * 1000 : asset.duration;
+        if (durationMs > 60_000) {
+          Alert.alert(
+            "Video muy largo",
+            "El video debe durar máximo 1 minuto."
+          );
+          return;
+        }
       }
 
       const maxBytes = 100 * 1024 * 1024;
