@@ -187,13 +187,16 @@ function FeedVideo({
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;
   });
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     try {
       if (isActive && isFocused) {
         player.play();
+        setIsPaused(false);
       } else {
         player.pause();
+        setIsPaused(true);
       }
     } catch {
       // no-op: player might be disposed during unmount
@@ -201,16 +204,51 @@ function FeedVideo({
   }, [isActive, isFocused, player]);
 
   return (
-    <VideoView
-      player={player}
-      // style={{ width: "100%", height: 260, backgroundColor: "#000" }}
-      style={{ width: "100%", aspectRatio: 9 / 16, backgroundColor: "#000" }}
-      allowsPictureInPicture={false}
-      nativeControls={false}
-      contentFit="cover"
-      fullscreenOptions={{ enable: false }}
-      // surfaceType={Platform.OS === "android" ? "textureView" : "surfaceView"}
-    />
+    <View style={{ width: "100%", aspectRatio: 9 / 16, backgroundColor: "#000" }}>
+      <VideoView
+        player={player}
+        style={{ width: "100%", height: "100%" }}
+        allowsPictureInPicture={false}
+        nativeControls={false}
+        contentFit="cover"
+        fullscreenOptions={{ enable: false }}
+      />
+      <Pressable
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onPress={() => {
+          if (isPaused) {
+            player.play();
+            setIsPaused(false);
+          } else {
+            player.pause();
+            setIsPaused(true);
+          }
+        }}
+      >
+        {isPaused && (
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: "rgba(0,0,0,0.55)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ color: "#fff", fontSize: 22, fontWeight: "700" }}>
+              ▶
+            </Text>
+          </View>
+        )}
+      </Pressable>
+    </View>
   );
 }
 
