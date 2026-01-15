@@ -20,6 +20,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
 import {
   ActivityIndicator,
   FlatList,
@@ -42,6 +43,7 @@ export default function SocialScreen() {
   const unfollowMutation = useUnfollowPet();
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [activeCommentsPostId, setActiveCommentsPostId] = useState<string | null>(null);
+  const isFocused = useIsFocused();
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: Array<{ item: any }> }) => {
@@ -61,6 +63,12 @@ export default function SocialScreen() {
       router.replace("/auth/login");
     }
   }, [loading, user]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      setActiveVideoId(null);
+    }
+  }, [isFocused]);
 
   if (loading) {
     return (
@@ -130,6 +138,7 @@ export default function SocialScreen() {
               <FeedVideo
                 uri={item.media_url}
                 isActive={activeVideoId === item.id}
+                isFocused={isFocused}
               />
             ) : (
               <View
@@ -166,14 +175,22 @@ export default function SocialScreen() {
   );
 }
 
-function FeedVideo({ uri, isActive }: { uri: string; isActive: boolean }) {
+function FeedVideo({
+  uri,
+  isActive,
+  isFocused,
+}: {
+  uri: string;
+  isActive: boolean;
+  isFocused: boolean;
+}) {
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;
   });
 
   useEffect(() => {
     try {
-      if (isActive) {
+      if (isActive && isFocused) {
         player.play();
       } else {
         player.pause();
@@ -181,7 +198,7 @@ function FeedVideo({ uri, isActive }: { uri: string; isActive: boolean }) {
     } catch {
       // no-op: player might be disposed during unmount
     }
-  }, [isActive, player]);
+  }, [isActive, isFocused, player]);
 
   return (
     <VideoView
