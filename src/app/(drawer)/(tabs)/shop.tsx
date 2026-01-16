@@ -6,7 +6,8 @@ import { useCartStore } from "@/store/cart";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -18,6 +19,8 @@ import {
 
 export default function ShopScreen() {
   const { user, loading } = useAuthStore();
+  const [onboardingDone, setOnboardingDone] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
   const userId = user?.id;
   const cartItems = useCartStore((s) => s.items);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -47,11 +50,32 @@ export default function ShopScreen() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/auth/login");
+      if (onboardingChecked && onboardingDone) {
+        router.replace("/auth/login");
+      }
     }
-  }, [loading, user]);
+  }, [loading, user, onboardingChecked, onboardingDone]);
 
-  if (loading) {
+  useEffect(() => {
+    let active = true;
+    AsyncStorage.getItem("onboarding_completed")
+      .then((value) => {
+        if (active) {
+          setOnboardingDone(value === "true");
+          setOnboardingChecked(true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setOnboardingChecked(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (loading || !onboardingChecked || !onboardingDone) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Cargando sesión...</Text>

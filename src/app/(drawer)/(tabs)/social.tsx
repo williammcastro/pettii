@@ -19,6 +19,7 @@ import { usePetSelectionStore } from "@/store/pet-selection";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { VideoView, useVideoPlayer } from "expo-video";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import {
@@ -37,6 +38,8 @@ import {
 
 export default function SocialScreen() {
   const { user, loading } = useAuthStore();
+  const [onboardingDone, setOnboardingDone] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
   const selectedPetId = usePetSelectionStore((s) => s.selectedPetId);
   const { data: posts, isLoading } = usePublicFeedPosts();
   const followMutation = useFollowPet();
@@ -60,9 +63,30 @@ export default function SocialScreen() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/auth/login");
+      if (onboardingChecked && onboardingDone) {
+        router.replace("/auth/login");
+      }
     }
-  }, [loading, user]);
+  }, [loading, user, onboardingChecked, onboardingDone]);
+
+  useEffect(() => {
+    let active = true;
+    AsyncStorage.getItem("onboarding_completed")
+      .then((value) => {
+        if (active) {
+          setOnboardingDone(value === "true");
+          setOnboardingChecked(true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setOnboardingChecked(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isFocused) {
@@ -70,7 +94,7 @@ export default function SocialScreen() {
     }
   }, [isFocused]);
 
-  if (loading) {
+  if (loading || !onboardingChecked || !onboardingDone) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>Cargando sesión...</Text>

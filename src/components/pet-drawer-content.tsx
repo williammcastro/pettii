@@ -8,6 +8,7 @@ import { usePetSelectionStore } from "@/store/pet-selection";
 import { useEffect } from "react";
 import { router } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function PetDrawerContent(props: DrawerContentComponentProps) {
   const { user, loading, signOut } = useAuthStore();
@@ -91,7 +92,17 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
 
       <Pressable
         style={[styles.actionButton, styles.signOutButton]}
-        onPress={signOut}
+        onPress={async () => {
+          await AsyncStorage.multiRemove([
+            "onboarding_completed",
+            "onboarding_started",
+            "onboarding_terms_accepted",
+            "onboarding_pet_preference",
+            "onboarding_clinic_code",
+            "onboarding_referral_source",
+          ]);
+          signOut();
+        }}
       >
         <Text style={styles.actionText}>Cerrar sesión</Text>
       </Pressable>

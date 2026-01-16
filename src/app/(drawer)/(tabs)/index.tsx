@@ -7,6 +7,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
@@ -25,6 +26,8 @@ import {
 
 export default function HomeScreen() {
   const { user, loading } = useAuthStore();
+  const [onboardingDone, setOnboardingDone] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
   const { selectedPetId, setSelectedPetId } = usePetSelectionStore();
   const userId = user?.id;
   const { data: posts, isLoading: isPostsLoading } = usePetPosts(
@@ -42,9 +45,30 @@ export default function HomeScreen() {
   // Redirección si no hay usuario
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/auth/login");
+      if (onboardingChecked && onboardingDone) {
+        router.replace("/auth/login");
+      }
     }
-  }, [loading, user]);
+  }, [loading, user, onboardingChecked, onboardingDone]);
+
+  useEffect(() => {
+    let active = true;
+    AsyncStorage.getItem("onboarding_completed")
+      .then((value) => {
+        if (active) {
+          setOnboardingDone(value === "true");
+          setOnboardingChecked(true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setOnboardingChecked(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const { data: pets, isLoading } = usePets(userId, !loading);
   const safePets = pets ?? []; // 👈 siempre es un array
@@ -59,7 +83,7 @@ export default function HomeScreen() {
   }, [loading, safePets, selectedPetId, setSelectedPetId]);
 
   // Mientras carga la sesión o no hay usuario, no renderizamos contenido
-  if (loading || !user) return null;
+  if (loading || !user || !onboardingChecked || !onboardingDone) return null;
 
   const handlePickMedia = async () => {
     if (!selectedPetId || !userId) return;

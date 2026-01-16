@@ -1,0 +1,115 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+
+type Preference = "dog" | "cat" | "other";
+
+export default function OnboardingPetPreference() {
+  const [selected, setSelected] = useState<Preference | null>(null);
+
+  const options: Array<{ id: Preference; label: string; emoji: string }> = [
+    { id: "dog", label: "Perritos", emoji: "🐶" },
+    { id: "cat", label: "Gatitos", emoji: "🐱" },
+    { id: "other", label: "Otro", emoji: "🐾" },
+  ];
+
+  const handleNext = async () => {
+    if (!selected) return;
+    await AsyncStorage.setItem("onboarding_pet_preference", selected);
+    router.push("/onboarding/clinic-code");
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>¿Eres más de...?</Text>
+        <Text style={styles.subtitle}>
+          Elige lo que más te gusta para personalizar tu experiencia.
+        </Text>
+
+        <View style={styles.cards}>
+          {options.map((option) => (
+            <Pressable
+              key={option.id}
+              onPress={() => setSelected(option.id)}
+              style={[
+                styles.card,
+                selected === option.id && styles.cardSelected,
+              ]}
+            >
+              <Text style={styles.cardEmoji}>{option.emoji}</Text>
+              <Text style={styles.cardLabel}>{option.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.actions}>
+        <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
+          <Text style={styles.secondaryText}>Atrás</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.primaryButton, !selected && styles.disabledButton]}
+          onPress={handleNext}
+          disabled={!selected}
+        >
+          <Text style={styles.primaryText}>Continuar</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: "#fff",
+    justifyContent: "space-between",
+  },
+  content: {
+    marginTop: 40,
+    gap: 12,
+  },
+  title: { fontSize: 24, fontWeight: "700", color: "#111" },
+  subtitle: { fontSize: 15, color: "#555" },
+  cards: { flexDirection: "row", gap: 12, marginTop: 16 },
+  card: {
+    flex: 1,
+    paddingVertical: 24,
+    borderRadius: 16,
+    backgroundColor: "#f3f3f3",
+    alignItems: "center",
+    gap: 8,
+  },
+  cardSelected: {
+    borderWidth: 2,
+    borderColor: "#0a7ea4",
+    backgroundColor: "#e6f6fb",
+  },
+  cardEmoji: { fontSize: 28 },
+  cardLabel: { fontWeight: "600", color: "#333" },
+  actions: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 20,
+  },
+  primaryButton: {
+    flex: 1,
+    backgroundColor: "#111",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: "#eee",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  disabledButton: { backgroundColor: "#bbb" },
+  primaryText: { color: "#fff", fontWeight: "700" },
+  secondaryText: { color: "#111", fontWeight: "600" },
+});
