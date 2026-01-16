@@ -1,10 +1,18 @@
-import { usePetById, useUpdatePetProfile } from "@/features/pets/hooks";
+import {
+  useCreatePetReminder,
+  useDeletePetReminder,
+  usePetById,
+  usePetReminders,
+  useUpdatePetProfile,
+  useUpdatePetReminder,
+} from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -26,7 +34,19 @@ export default function PetRecordModal() {
   const petId = usePetSelectionStore((s) => s.selectedPetId);
   const { data: pet } = usePetById(petId ?? undefined);
   const { mutateAsync: updatePet, isPending } = useUpdatePetProfile(user?.id);
+  const { data: reminders } = usePetReminders(petId ?? undefined);
+  const { mutateAsync: createReminder, isPending: isCreatingReminder } =
+    useCreatePetReminder();
+  const { mutateAsync: updateReminder, isPending: isUpdatingReminder } =
+    useUpdatePetReminder();
+  const { mutateAsync: removeReminder, isPending: isDeletingReminder } =
+    useDeletePetReminder();
   const [editMode, setEditMode] = useState(false);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
+  const [reminderTitle, setReminderTitle] = useState("");
+  const [reminderDescription, setReminderDescription] = useState("");
+  const [reminderDate, setReminderDate] = useState("");
   const [form, setForm] = useState({
     name: "",
     species: "",
@@ -78,6 +98,55 @@ export default function PetRecordModal() {
       sterilized:
         prev.sterilized == null ? true : prev.sterilized ? false : null,
     }));
+  };
+
+  const handleCreateReminder = async () => {
+    if (!petId) return;
+    if (!reminderTitle.trim() || !reminderDate.trim()) {
+      setError("Completa el nombre y la fecha del recordatorio.");
+      return;
+    }
+    setError(null);
+    try {
+      if (editingReminderId) {
+        await updateReminder({
+          id: editingReminderId,
+          title: reminderTitle.trim(),
+          description: reminderDescription.trim()
+            ? reminderDescription.trim()
+            : null,
+          due_at: reminderDate.trim(),
+        });
+      } else {
+        await createReminder({
+          pet_id: petId,
+          title: reminderTitle.trim(),
+          description: reminderDescription.trim()
+            ? reminderDescription.trim()
+            : null,
+          due_at: reminderDate.trim(),
+        });
+      }
+      setReminderTitle("");
+      setReminderDescription("");
+      setReminderDate("");
+      setEditingReminderId(null);
+      setShowReminderModal(false);
+    } catch (e: any) {
+      setError(e?.message ?? "No se pudo crear el recordatorio.");
+    }
+  };
+
+  const getReminderTone = (dueAt: string) => {
+    const now = new Date();
+    const due = new Date(`${dueAt}T00:00:00`);
+    if (Number.isNaN(due.getTime())) return styles.reminderNeutral;
+    const diffDays = Math.ceil(
+      (due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (diffDays <= 0) return styles.reminderOverdue;
+    if (diffDays <= 7) return styles.reminderSoon;
+    return styles.reminderNeutral;
   };
 
   const handleSave = async () => {
@@ -292,6 +361,43 @@ export default function PetRecordModal() {
             </View>
           </>
         )}
+        <View style={styles.remindersHeader}>
+          <Text style={styles.sectionTitle}>Recordatorios</Text>
+          <Pressable
+            style={styles.reminderAddButton}
+            onPress={() => setShowReminderModal(true)}
+          >
+            <Text style={styles.reminderAddText}>+</Text>
+          </Pressable>
+        </View>
+
+        {reminders && reminders.length === 0 && (
+          <Text style={styles.mutedText}>Sin recordatorios todavía.</Text>
+        )}
+        {reminders?.map((reminder) => (
+          <Pressable
+            key={reminder.id}
+            style={[styles.reminderCard, getReminderTone(reminder.due_at)]}
+            onPress={() => {
+              setEditingReminderId(reminder.id);
+              setReminderTitle(reminder.title);
+              setReminderDescription(reminder.description ?? "");
+              setReminderDate(reminder.due_at);
+              setShowReminderModal(true);
+            }}
+          >
+            <Text style={styles.reminderTitle}>{reminder.title}</Text>
+            <Text style={styles.reminderDate}>
+              {formatDate(reminder.due_at)}
+            </Text>
+            {reminder.description ? (
+              <Text style={styles.reminderDescription}>
+                {reminder.description}
+              </Text>
+            ) : null}
+          </Pressable>
+        ))}
+
         {error && <Text style={styles.errorText}>{error}</Text>}
         {editMode && (
           <Pressable
@@ -305,6 +411,103 @@ export default function PetRecordModal() {
           </Pressable>
         )}
       </ScrollView>
+
+      <Modal
+        visible={showReminderModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowReminderModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>
+              {editingReminderId ? "Editar recordatorio" : "Nuevo recordatorio"}
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre del recordatorio"
+              value={reminderTitle}
+              onChangeText={setReminderTitle}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Fecha (YYYY-MM-DD)"
+              value={reminderDate}
+              onChangeText={setReminderDate}
+            />
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              placeholder="Descripción (opcional)"
+              value={reminderDescription}
+              onChangeText={setReminderDescription}
+              multiline
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                style={styles.secondaryButton}
+                onPress={() => {
+                  setShowReminderModal(false);
+                  setEditingReminderId(null);
+                }}
+              >
+                <Text style={styles.secondaryText}>Cancelar</Text>
+              </Pressable>
+              {editingReminderId ? (
+                <Pressable
+                  style={[
+                    styles.primaryButton,
+                    (isUpdatingReminder || isDeletingReminder) &&
+                      styles.disabledButton,
+                  ]}
+                  onPress={async () => {
+                    await handleCreateReminder();
+                  }}
+                  disabled={isUpdatingReminder || isDeletingReminder}
+                >
+                  <Text style={styles.primaryText}>
+                    {isUpdatingReminder ? "Guardando..." : "Guardar"}
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  style={[
+                    styles.primaryButton,
+                    isCreatingReminder && styles.disabledButton,
+                  ]}
+                  onPress={handleCreateReminder}
+                  disabled={isCreatingReminder}
+                >
+                  <Text style={styles.primaryText}>
+                    {isCreatingReminder ? "Guardando..." : "Guardar"}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+            {editingReminderId ? (
+              <Pressable
+                style={[
+                  styles.deleteButton,
+                  isDeletingReminder && styles.disabledButton,
+                ]}
+                onPress={async () => {
+                  if (!editingReminderId) return;
+                  await removeReminder(editingReminderId);
+                  setShowReminderModal(false);
+                  setEditingReminderId(null);
+                  setReminderTitle("");
+                  setReminderDescription("");
+                  setReminderDate("");
+                }}
+                disabled={isDeletingReminder}
+              >
+                <Text style={styles.deleteText}>
+                  {isDeletingReminder ? "Borrando..." : "Borrar recordatorio"}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -333,6 +536,77 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
   },
+  mutedText: { color: "#666", marginBottom: 8 },
+  remindersHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+  reminderAddButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#111",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reminderAddText: { color: "#fff", fontWeight: "700", fontSize: 18 },
+  reminderCard: {
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#f7f7f7",
+    marginBottom: 10,
+  },
+  reminderTitle: { fontWeight: "700", color: "#111" },
+  reminderDate: { color: "#555", marginTop: 4 },
+  reminderDescription: { color: "#444", marginTop: 6 },
+  reminderSoon: { borderLeftWidth: 4, borderLeftColor: "#f39c12" },
+  reminderOverdue: { borderLeftWidth: 4, borderLeftColor: "#e74c3c" },
+  reminderNeutral: { borderLeftWidth: 4, borderLeftColor: "#bbb" },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  modalTitle: { fontSize: 16, fontWeight: "700", marginBottom: 12 },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 4,
+  },
+  primaryButton: {
+    flex: 1,
+    backgroundColor: "#111",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: "#eee",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  primaryText: { color: "#fff", fontWeight: "700" },
+  secondaryText: { color: "#111", fontWeight: "600" },
+  disabledButton: { backgroundColor: "#bbb" },
+  textArea: { minHeight: 80, textAlignVertical: "top" },
+  deleteButton: {
+    marginTop: 10,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#ffe7e7",
+    alignItems: "center",
+  },
+  deleteText: { color: "#c0392b", fontWeight: "700" },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",

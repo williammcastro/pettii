@@ -172,3 +172,73 @@ export async function fetchPetStats(petId: string): Promise<{
     following: followingCount ?? 0,
   };
 }
+
+export type PetReminder = {
+  id: string;
+  pet_id: string;
+  title: string;
+  description?: string | null;
+  due_at: string;
+  created_at: string;
+  completed_at?: string | null;
+};
+
+export async function fetchPetReminders(petId: string): Promise<PetReminder[]> {
+  const { data, error } = await supabase
+    .from("pet_reminders")
+    .select("*")
+    .eq("pet_id", petId)
+    .order("due_at", { ascending: true });
+
+  if (error) throw error;
+
+  return data ?? [];
+}
+
+export async function createPetReminder(input: {
+  pet_id: string;
+  title: string;
+  description?: string | null;
+  due_at: string;
+}) {
+  const { data, error } = await supabase
+    .from("pet_reminders")
+    .insert(input)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+export async function updatePetReminder(input: {
+  id: string;
+  title?: string | null;
+  description?: string | null;
+  due_at?: string | null;
+}) {
+  const { data, error } = await supabase
+    .from("pet_reminders")
+    .update({
+      title: input.title ?? null,
+      description: input.description ?? null,
+      due_at: input.due_at ?? null,
+    })
+    .eq("id", input.id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
+export async function deletePetReminder(id: string) {
+  const { error } = await supabase
+    .from("pet_reminders")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+}
