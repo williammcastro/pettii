@@ -9,6 +9,7 @@ import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -101,8 +102,8 @@ export default function CartModal() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior="padding"
-      keyboardVerticalOffset={Math.max(insets.top, 12)}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Math.max(insets.top, 12) + 60}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={[styles.content, { paddingBottom: Math.max(insets.bottom, 16) }]}>
@@ -114,7 +115,10 @@ export default function CartModal() {
           </View>
 
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: 100 },
+            ]}
             keyboardShouldPersistTaps="handled"
           >
             {items.length === 0 ? (
