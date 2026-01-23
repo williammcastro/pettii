@@ -3,9 +3,11 @@ import { useCartStore } from "@/store/cart";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function ProductDetailModal() {
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const productId = typeof id === "string" ? id : undefined;
   const { data: product, isLoading } = useProductById(productId);
@@ -68,7 +70,7 @@ export default function ProductDetailModal() {
         )}
       </View>
 
-      <View style={styles.detailsCard}>
+      <View style={[styles.detailsCard, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <Text style={styles.name}>{product.name}</Text>
         {product.description && (
           <Text style={styles.description}>{product.description}</Text>
