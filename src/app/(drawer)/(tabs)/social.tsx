@@ -157,7 +157,7 @@ export default function SocialScreen() {
                 source={{ uri: item.media_url }}
                 style={{ width: "100%", aspectRatio: 9 / 16 }}
                 contentFit="cover"
-                cachePolicy="memory-disk"
+                cachePolicy="memory"
               />
             ) : item.media_type === "video" && item.media_url ? (
               <FeedVideo
