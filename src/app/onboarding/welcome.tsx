@@ -2,14 +2,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function OnboardingWelcome() {
+  const insets = useSafeAreaInsets();
   useEffect(() => {
     AsyncStorage.setItem("onboarding_started", "true");
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 20) }]}>
       <View style={styles.content}>
         <Text style={styles.title}>Bienvenido a Pettii</Text>
         <Text style={styles.subtitle}>

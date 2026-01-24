@@ -2,11 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Preference = "dog" | "cat" | "other";
 
 export default function OnboardingPetPreference() {
   const [selected, setSelected] = useState<Preference | null>(null);
+  const insets = useSafeAreaInsets();
 
   const options: Array<{ id: Preference; label: string; emoji: string }> = [
     { id: "dog", label: "Perritos", emoji: "🐶" },
@@ -21,7 +23,7 @@ export default function OnboardingPetPreference() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 20) }]}>
       <View style={styles.content}>
         <Text style={styles.title}>¿Eres más de...?</Text>
         <Text style={styles.subtitle}>

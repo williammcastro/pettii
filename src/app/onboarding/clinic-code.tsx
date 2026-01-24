@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -22,29 +23,35 @@ export default function OnboardingClinicCode() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
     >
-      <View style={styles.content}>
-        <Text style={styles.title}>Código de veterinaria</Text>
-        <Text style={styles.subtitle}>
-          Ingresa el código de la veterinaria donde atienden a tu mascota.
-        </Text>
-        <TextInput
-          value={code}
-          onChangeText={setCode}
-          placeholder="Ej: PETTI123"
-          style={styles.input}
-        />
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.content}>
+          <Text style={styles.title}>Código de veterinaria</Text>
+          <Text style={styles.subtitle}>
+            Ingresa el código de la veterinaria.
+          </Text>
+          <TextInput
+            value={code}
+            onChangeText={setCode}
+            placeholder="Ej: PETTI123"
+            style={styles.input}
+          />
+        </View>
 
-      <View style={styles.actions}>
-        <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
-          <Text style={styles.secondaryText}>Atrás</Text>
-        </Pressable>
-        <Pressable style={styles.primaryButton} onPress={handleNext}>
-          <Text style={styles.primaryText}>Continuar</Text>
-        </Pressable>
-      </View>
+        <View style={styles.actions}>
+          <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
+            <Text style={styles.secondaryText}>Atrás</Text>
+          </Pressable>
+          <Pressable style={styles.primaryButton} onPress={handleNext}>
+            <Text style={styles.primaryText}>Continuar</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -55,6 +62,11 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: "#fff",
     justifyContent: "space-between",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "space-between",
+    paddingBottom: 20,
   },
   content: {
     marginTop: 40,
