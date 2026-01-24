@@ -106,6 +106,7 @@ export default function ShopScreen() {
               }}
               style={styles.clinicLogo}
               contentFit="cover"
+              cachePolicy="memory-disk"
             />
           ) : (
             <View style={styles.clinicLogoPlaceholder} />

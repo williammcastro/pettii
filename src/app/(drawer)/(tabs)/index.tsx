@@ -1,13 +1,14 @@
 import { usePets, usePetStats } from "@/features/pets/hooks";
 import { useCreatePetPost, useDeletePetPost, usePetPosts } from "@/features/posts/hooks";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { PostWithMedia } from "@/types/post";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
+import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
@@ -16,7 +17,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -221,6 +221,7 @@ export default function HomeScreen() {
                         : "") ??
                       "",
                   }}
+                  cachePolicy="memory-disk"
                   style={styles.profileAvatarImage}
                 />
               ) : (
