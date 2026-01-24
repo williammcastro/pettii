@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -47,7 +47,9 @@ export default function RegisterScreen() {
         onChangeText={setPassword}
       />
 
-      <Button title="Registrarme" onPress={handleRegister} />
+      <Pressable style={styles.primaryButton} onPress={handleRegister}>
+        <Text style={styles.primaryText}>Registrarme</Text>
+      </Pressable>
     </View>
   );
 }
@@ -61,5 +63,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
+  },
+  primaryButton: {
+    backgroundColor: '#111',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
   },
 });

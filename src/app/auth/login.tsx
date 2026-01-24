@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
   const { user } = useAuthStore();
@@ -56,11 +56,15 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
 
-      <Button title="Entrar" onPress={handleLogin} />
+      <Pressable style={styles.primaryButton} onPress={handleLogin}>
+        <Text style={styles.primaryText}>Entrar</Text>
+      </Pressable>
 
       <View style={{ height: 16 }} />
 
-      <Button title="Crear cuenta" onPress={goToRegister} />
+      <Pressable style={styles.secondaryButton} onPress={goToRegister}>
+        <Text style={styles.secondaryText}>Crear cuenta</Text>
+      </Pressable>
     </View>
   );
 }
@@ -74,5 +78,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
+  },
+  primaryButton: {
+    backgroundColor: '#111',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  secondaryButton: {
+    backgroundColor: '#eee',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  secondaryText: {
+    color: '#111',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
