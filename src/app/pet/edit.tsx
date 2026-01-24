@@ -6,11 +6,11 @@ import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -153,6 +153,8 @@ export default function EditPetProfileModal() {
             <Image
               source={{ uri: avatarPreview }}
               style={styles.avatarImage}
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
           ) : (
             <Text style={styles.avatarText}>PET</Text>

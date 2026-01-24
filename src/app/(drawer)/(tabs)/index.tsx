@@ -222,6 +222,7 @@ export default function HomeScreen() {
                       "",
                   }}
                   cachePolicy="memory-disk"
+                  contentFit="cover"
                   style={styles.profileAvatarImage}
                 />
               ) : (
@@ -550,7 +551,7 @@ function VideoThumbnail({
         <Image
           source={{ uri }}
           style={{ width: "100%", height: "100%" }}
-          resizeMode="cover"
+          contentFit="cover"
         />
         <View
           style={{
@@ -645,7 +646,7 @@ function CachedMediaImage({
     <Image
       source={{ uri }}
       style={{ width: "100%", height: "100%" }}
-      resizeMode="cover"
+      contentFit="cover"
     />
   );
 
@@ -811,7 +812,7 @@ function ImageModal({
           <Image
             source={{ uri: url }}
             style={{ width: "100%", height: "100%" }}
-            resizeMode="contain"
+            contentFit="contain"
           />
         ) : (
           <View

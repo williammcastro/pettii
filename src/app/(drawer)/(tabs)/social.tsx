@@ -22,10 +22,10 @@ import { VideoView, useVideoPlayer } from "expo-video";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useIsFocused } from "@react-navigation/native";
+import { Image } from "expo-image";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -156,7 +156,8 @@ export default function SocialScreen() {
               <Image
                 source={{ uri: item.media_url }}
                 style={{ width: "100%", aspectRatio: 9 / 16 }}
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="memory-disk"
               />
             ) : item.media_type === "video" && item.media_url ? (
               <FeedVideo
@@ -327,6 +328,8 @@ function PetHeader({
               borderRadius: 16,
               backgroundColor: "#eee",
             }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
         ) : (
           <View
@@ -442,6 +445,8 @@ function PetMini({ petId }: { petId: string }) {
             borderRadius: 21,
             backgroundColor: "#eee",
           }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
         />
       ) : (
         <View

@@ -12,10 +12,10 @@ import { usePetSelectionStore } from "@/store/pet-selection";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { useLayoutEffect, useMemo } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Image } from "expo-image";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -103,7 +103,12 @@ export default function PetProfileScreen() {
 
       <View style={styles.profileCard}>
         {avatarUrl ? (
-          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          <Image
+            source={{ uri: avatarUrl }}
+            style={styles.avatar}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+          />
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>
             <Text style={styles.avatarText}>
@@ -186,7 +191,8 @@ export default function PetProfileScreen() {
               <Image
                 source={{ uri: item.media_url }}
                 style={styles.gridMedia}
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="memory-disk"
               />
             ) : (
               <View style={styles.videoTile}>
@@ -220,6 +226,8 @@ function PetMini({ petId }: { petId: string }) {
             borderRadius: 21,
             backgroundColor: "#eee",
           }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
         />
       ) : (
         <View

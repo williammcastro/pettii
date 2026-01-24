@@ -7,7 +7,8 @@ import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
 import { useEffect } from "react";
 import { router } from "expo-router";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function PetDrawerContent(props: DrawerContentComponentProps) {
@@ -52,7 +53,12 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
             }}
           >
             {pet.avatar_url ? (
-              <Image source={{ uri: pet.avatar_url }} style={styles.avatar} />
+              <Image
+                source={{ uri: pet.avatar_url }}
+                style={styles.avatar}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+              />
             ) : (
               <View style={[styles.avatar, styles.avatarFallback]}>
                 <Text style={styles.avatarText}>
