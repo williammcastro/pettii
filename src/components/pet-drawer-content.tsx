@@ -52,9 +52,14 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
               props.navigation.closeDrawer();
             }}
           >
-            {pet.avatar_url ? (
+            {pet.avatar_signed_url ||
+            (pet.avatar_url?.startsWith("http") ? pet.avatar_url : null) ? (
               <Image
-                source={{ uri: pet.avatar_url }}
+                source={{
+                  uri:
+                    pet.avatar_signed_url ??
+                    (pet.avatar_url?.startsWith("http") ? pet.avatar_url : ""),
+                }}
                 style={styles.avatar}
                 contentFit="cover"
                 cachePolicy="memory-disk"
