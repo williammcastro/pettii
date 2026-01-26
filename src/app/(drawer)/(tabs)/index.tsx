@@ -680,7 +680,11 @@ async function getCachedThumbnail(mediaUrl: string) {
   const fileUri = `${cacheDir}${fileName}`;
 
   const info = await FileSystem.getInfoAsync(fileUri);
-  return info.exists ? fileUri : null;
+  if (info.exists && info.size && info.size > 0) return fileUri;
+  if (info.exists) {
+    await FileSystem.deleteAsync(fileUri, { idempotent: true });
+  }
+  return null;
 }
 
 async function storeThumbnail(mediaUrl: string, sourceUri: string) {
@@ -691,7 +695,10 @@ async function storeThumbnail(mediaUrl: string, sourceUri: string) {
   try {
     await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
     await FileSystem.copyAsync({ from: sourceUri, to: fileUri });
-    return fileUri;
+    const info = await FileSystem.getInfoAsync(fileUri);
+    if (info.exists && info.size && info.size > 0) return fileUri;
+    await FileSystem.deleteAsync(fileUri, { idempotent: true });
+    return null;
   } catch {
     return null;
   }
@@ -703,7 +710,11 @@ async function getCachedMedia(mediaUrl: string) {
   const fileUri = `${cacheDir}${fileName}`;
 
   const info = await FileSystem.getInfoAsync(fileUri);
-  return info.exists ? fileUri : null;
+  if (info.exists && info.size && info.size > 0) return fileUri;
+  if (info.exists) {
+    await FileSystem.deleteAsync(fileUri, { idempotent: true });
+  }
+  return null;
 }
 
 async function storeMedia(mediaUrl: string) {
@@ -712,8 +723,11 @@ async function storeMedia(mediaUrl: string) {
   const fileUri = `${cacheDir}${fileName}`;
 
   await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
-  const result = await FileSystem.downloadAsync(mediaUrl, fileUri);
-  return result.uri;
+  await FileSystem.downloadAsync(mediaUrl, fileUri);
+  const info = await FileSystem.getInfoAsync(fileUri);
+  if (info.exists && info.size && info.size > 0) return fileUri;
+  await FileSystem.deleteAsync(fileUri, { idempotent: true });
+  return null;
 }
 
 function VideoModal({
