@@ -90,6 +90,22 @@ export default function HomeScreen() {
     setIsPickingMedia(true);
 
     try {
+      const warningShown = await AsyncStorage.getItem("upload_warning_shown");
+      if (!warningShown) {
+        const proceed = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            "Contenido responsable",
+            "La idea de la comunidad es subir contenido inspirador y divertido. El contenido violento o de maltrato puede causar bloqueo de tu cuenta.",
+            [
+              { text: "Cancelar", style: "cancel", onPress: () => resolve(false) },
+              { text: "Entendido", style: "default", onPress: () => resolve(true) },
+            ]
+          );
+        });
+        if (!proceed) return;
+        await AsyncStorage.setItem("upload_warning_shown", "true");
+      }
+
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") return;
 

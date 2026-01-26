@@ -71,6 +71,7 @@ export async function fetchFeedPostsForPet(
     .from("posts")
     .select("*")
     .in("pet_id", followedIds)
+    .eq("moderation_status", "approved")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -83,6 +84,7 @@ export async function fetchPublicFeedPosts(): Promise<PostWithMedia[]> {
     .from("posts")
     .select("*")
     .eq("visibility", "public")
+    .eq("moderation_status", "approved")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -128,6 +130,7 @@ export async function createPostWithMedia(input: {
       storage_bucket: bucket,
       storage_path: storagePath,
       visibility: "public",
+      moderation_status: "pending",
       caption: input.caption ?? null,
     })
     .select()

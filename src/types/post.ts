@@ -6,6 +6,9 @@ export type Post = {
   storage_bucket: string;
   storage_path: string;
   visibility: "public" | "private";
+  moderation_status?: "pending" | "approved" | "rejected";
+  moderation_reason?: string | null;
+  moderation_score?: number | null;
   caption?: string | null;
   created_at: string;
 };
