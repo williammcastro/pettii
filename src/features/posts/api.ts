@@ -147,21 +147,11 @@ export async function deletePostWithMedia(input: {
   storage_path?: string | null;
   pet_id?: string | null;
 }) {
-  const { error: deleteError } = await supabase
-    .from("posts")
-    .delete()
-    .eq("id", input.id);
+  const { error } = await supabase.rpc("delete_post_with_media", {
+    post_id_input: input.id,
+  });
 
-  if (deleteError) throw deleteError;
-
-  if (input.storage_bucket && input.storage_path) {
-    const { error: storageError } = await supabase.storage
-      .from(input.storage_bucket)
-      .remove([input.storage_path]);
-    if (storageError) {
-      // The DB record is already removed; ignore storage errors here.
-    }
-  }
+  if (error) throw error;
 }
 
 export async function followPet(input: {
