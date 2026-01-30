@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   mutedText: { color: "#666" },
   profileCard: {
     padding: 11,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#fff",
     borderRadius: 14,
     marginBottom: 12,
     flexDirection: "row",

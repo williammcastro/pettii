@@ -4,9 +4,9 @@ import { useProductsForPrimaryClinic } from "@/features/products/hooks";
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import {
   FlatList,
@@ -158,7 +158,7 @@ export default function ShopScreen() {
         </Text>
       )} */}
 
-      {isClinicLoading && <Text>Cargando veterinaria...</Text>}
+      {isClinicLoading && <Text>Cargando ...</Text>}
 
       {products && hasPrimaryClinic && (
         <Text style={styles.meta}>
@@ -254,16 +254,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    padding: 12,
+    padding: 4,
     borderRadius: 12,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#ffffff",
     marginBottom: 16,
   },
-  clinicLogo: { width: 56, height: 56, borderRadius: 28 },
+  clinicLogo: { width: 70, height: 70, borderRadius: 35 },
   clinicLogoPlaceholder: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: "#e0e0e0",
   },
   clinicInfo: { flex: 1 },
