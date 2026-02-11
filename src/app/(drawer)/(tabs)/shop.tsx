@@ -7,20 +7,58 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 
+const CATEGORY_OPTIONS = [
+  "Perro",
+  "Gato",
+  "Alimento",
+  "Snacks",
+  "Farmacia",
+  "Accesorios",
+  "Juguetes",
+  "Servicios",
+] as const;
+
+function normalizeLabel(value?: string | null) {
+  const raw = value?.trim().toLowerCase();
+  if (raw === "nuevo") return "Nuevo";
+  if (raw === "promo") return "Promo";
+  if (raw === "combo") return "Combo";
+  return null;
+}
+
+function normalizeCategory(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function extractProductCategories(input?: string[] | string | null) {
+  if (!input) return [];
+  if (Array.isArray(input)) {
+    return input
+      .map((category) => category.trim())
+      .filter((category) => category.length > 0);
+  }
+  return input
+    .split(",")
+    .map((category) => category.trim())
+    .filter((category) => category.length > 0);
+}
+
 export default function ShopScreen() {
   const { user, loading } = useAuthStore();
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
   const userId = user?.id;
   const cartItems = useCartStore((s) => s.items);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -38,6 +76,16 @@ export default function ShopScreen() {
     error: productsError,
     refetch: refetchProducts,
   } = useProductsForPrimaryClinic(userId, hasPrimaryClinic);
+  const filteredProducts = useMemo(() => {
+    const productList = products ?? [];
+    if (selectedCategory === "Todos") return productList;
+    const selected = normalizeCategory(selectedCategory);
+    return productList.filter((product) =>
+      extractProductCategories(product.category).some(
+        (category) => normalizeCategory(category) === selected
+      )
+    );
+  }, [products, selectedCategory]);
 
   const handleRefresh = async () => {
     try {
@@ -139,6 +187,50 @@ export default function ShopScreen() {
       <Text style={styles.title}>
         Catálogo de productos
       </Text>
+      <View style={styles.chipsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipsScroll}
+          contentContainerStyle={styles.chipsRow}
+        >
+          <Pressable
+            onPress={() => setSelectedCategory("Todos")}
+            style={[
+              styles.chip,
+              selectedCategory === "Todos" && styles.chipSelected,
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                selectedCategory === "Todos" && styles.chipTextSelected,
+              ]}
+            >
+              Todos
+            </Text>
+          </Pressable>
+          {CATEGORY_OPTIONS.map((category) => (
+            <Pressable
+              key={category}
+              onPress={() => setSelectedCategory(category)}
+              style={[
+                styles.chip,
+                selectedCategory === category && styles.chipSelected,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  selectedCategory === category && styles.chipTextSelected,
+                ]}
+              >
+                {category}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
 
       {/* {user.email && (
         <Text style={styles.meta}>
@@ -162,7 +254,7 @@ export default function ShopScreen() {
 
       {products && hasPrimaryClinic && (
         <Text style={styles.meta}>
-          {products.length} productos
+          {filteredProducts.length} productos
         </Text>
       )}
 
@@ -182,7 +274,7 @@ export default function ShopScreen() {
 
       {!isProductsLoading && hasPrimaryClinic && (
         <FlatList
-          data={products ?? []}
+          data={filteredProducts}
           keyExtractor={(item) => item.id}
           numColumns={3}
           columnWrapperStyle={styles.gridRow}
@@ -193,35 +285,50 @@ export default function ShopScreen() {
               onRefresh={handleRefresh}
             />
           }
-          renderItem={({ item }) => (
-            <View style={styles.productCard}>
-              <Pressable onPress={() => router.push(`/product/${item.id}`)}>
-                {item.image_signed_url || item.image_url ? (
-                  <Image
-                    source={{ uri: item.image_signed_url ?? item.image_url ?? "" }}
-                    style={styles.productImage}
-                    contentFit="cover"
-                  />
-                ) : (
-                  <View style={styles.productImagePlaceholder} />
+          renderItem={({ item }) => {
+            const productLabel = normalizeLabel(item.label);
+
+            return (
+              <View style={styles.productCard}>
+                <Pressable onPress={() => router.push(`/product/${item.id}`)}>
+                  {item.image_signed_url || item.image_url ? (
+                    <Image
+                      source={{ uri: item.image_signed_url ?? item.image_url ?? "" }}
+                      style={styles.productImage}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <View style={styles.productImagePlaceholder} />
+                  )}
+                </Pressable>
+                {productLabel && (
+                  <View style={styles.labelBadge}>
+                    <Text style={styles.labelBadgeText}>{productLabel}</Text>
+                  </View>
                 )}
-              </Pressable>
-              <Text style={styles.productName} numberOfLines={2}>
-                {item.name}
-              </Text>
-              {item.description && (
-                <Text style={styles.productDescription} numberOfLines={3}>
-                  {item.description}
+                <Text style={styles.productName} numberOfLines={2}>
+                  {item.name}
                 </Text>
-              )}
-              {item.price_cents != null && (
-                <Text style={styles.productPrice}>
-                  {item.currency} {(item.price_cents / 100).toFixed(2)}
-                </Text>
-              )}
-            </View>
-          )}
-          ListEmptyComponent={<Text>No hay productos disponibles.</Text>}
+                {item.description && (
+                  <Text style={styles.productDescription} numberOfLines={3}>
+                    {item.description}
+                  </Text>
+                )}
+                {item.price_cents != null && (
+                  <Text style={styles.productPrice}>
+                    {item.currency} {(item.price_cents / 100).toFixed(2)}
+                  </Text>
+                )}
+              </View>
+            );
+          }}
+          ListEmptyComponent={
+            <Text>
+              {selectedCategory === "Todos"
+                ? "No hay productos disponibles."
+                : `No hay productos en ${selectedCategory}.`}
+            </Text>
+          }
         />
       )}
     </View>
@@ -248,6 +355,45 @@ const styles = StyleSheet.create({
   },
   cartCount: { color: "#111", fontWeight: "600" },
   title: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
+  chipsWrapper: {
+    height: 44,
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  chipsScroll: {
+    flexGrow: 0,
+  },
+  chipsRow: {
+    gap: 8,
+    alignItems: "center",
+    paddingVertical: 0,
+    paddingRight: 4,
+  },
+  chip: {
+    height: 36,
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: "#f2f2f2",
+    borderWidth: 1,
+    borderColor: "#e7e7e7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  chipSelected: {
+    backgroundColor: "#111",
+    borderColor: "#111",
+  },
+  chipText: {
+    fontSize: 12,
+    lineHeight: 14,
+    fontWeight: "600",
+    color: "#333",
+    includeFontPadding: false,
+  },
+  chipTextSelected: {
+    color: "#fff",
+  },
   meta: { color: "#666", marginBottom: 12 },
   errorText: { color: "#c0392b", marginBottom: 10 },
   clinicHeader: {
@@ -287,6 +433,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0e0e0",
   },
   productName: { fontSize: 14, fontWeight: "600" },
+  labelBadge: {
+    alignSelf: "flex-start",
+    marginTop: 2,
+    marginBottom: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: "#111",
+  },
+  labelBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
   productDescription: { color: "#666", marginTop: 4, fontSize: 12 },
   productPrice: { marginTop: 8, fontSize: 12 },
 });
