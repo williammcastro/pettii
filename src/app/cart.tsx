@@ -1,5 +1,6 @@
 import { usePrimaryClinic } from "@/features/clinics/hooks";
 import { useCreateOrder } from "@/features/orders/hooks";
+import { formatMoneyFromCents } from "@/lib/currency";
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
 import { router } from "expo-router";
@@ -133,7 +134,7 @@ export default function CartModal() {
                       </Text>
                       {item.price_cents != null && (
                         <Text style={styles.itemPrice}>
-                          {item.currency} {(item.price_cents / 100).toFixed(2)}
+                          {formatMoneyFromCents(item.price_cents, item.currency)}
                         </Text>
                       )}
                     </View>
@@ -186,7 +187,7 @@ export default function CartModal() {
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>
-                {currency} {(total / 100).toFixed(2)}
+                {formatMoneyFromCents(total, currency)}
               </Text>
             </View>
           </ScrollView>

@@ -1,6 +1,7 @@
 // src/app/(tabs)/index.tsx
 import { usePrimaryClinic } from "@/features/clinics/hooks";
 import { useProductsForPrimaryClinic } from "@/features/products/hooks";
+import { formatMoneyFromCents } from "@/lib/currency";
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -316,7 +317,7 @@ export default function ShopScreen() {
                 )}
                 {item.price_cents != null && (
                   <Text style={styles.productPrice}>
-                    {item.currency} {(item.price_cents / 100).toFixed(2)}
+                    {formatMoneyFromCents(item.price_cents, item.currency)}
                   </Text>
                 )}
               </View>

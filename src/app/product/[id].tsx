@@ -1,4 +1,5 @@
 import { useProductById } from "@/features/products/hooks";
+import { formatMoneyFromCents } from "@/lib/currency";
 import { useCartStore } from "@/store/cart";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
@@ -80,7 +81,7 @@ export default function ProductDetailModal() {
         )}
         {product.price_cents != null && (
           <Text style={styles.price}>
-            {product.currency} {(product.price_cents / 100).toFixed(2)}
+            {formatMoneyFromCents(product.price_cents, product.currency)}
           </Text>
         )}
 

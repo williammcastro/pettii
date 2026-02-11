@@ -1,4 +1,5 @@
 import { useOrdersForUser } from "@/features/orders/hooks";
+import { formatMoneyFromCents } from "@/lib/currency";
 import { useAuthStore } from "@/store/auth";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -57,7 +58,7 @@ export default function OrdersModal() {
             Estado: {formatStatus(order.status)}
           </Text>
           <Text style={styles.orderMeta}>
-            {order.currency} {(order.total_cents / 100).toFixed(2)}
+            {formatMoneyFromCents(order.total_cents, order.currency)}
           </Text>
         </View>
       ))}
