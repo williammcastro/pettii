@@ -43,7 +43,7 @@ export default function ShopScreen() {
     try {
       await refetchClinic();
       await refetchProducts();
-    } catch (e: any) {
+    } catch {
       // ignore refresh errors; UI will show query errors if any
     }
   };

@@ -12,7 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -71,7 +71,7 @@ export default function HomeScreen() {
   }, []);
 
   const { data: pets, isLoading } = usePets(userId, !loading);
-  const safePets = pets ?? []; // 👈 siempre es un array
+  const safePets = useMemo(() => pets ?? [], [pets]);
   const selectedPet = safePets.find((pet) => pet.id === selectedPetId);
   const { data: petStats } = usePetStats(selectedPet?.id);
 

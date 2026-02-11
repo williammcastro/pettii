@@ -51,6 +51,17 @@ export default function PetProfileScreen() {
       (pet.avatar_url?.startsWith("http") ? pet.avatar_url : null)
     );
   }, [pet]);
+  const recommendedPetIds = useMemo(() => {
+    const ids = (feedPosts ?? [])
+      .map((post) => post.pet_id)
+      .filter((id) => id && id !== petId);
+    const unique = Array.from(new Set(ids));
+    for (let i = unique.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [unique[i], unique[j]] = [unique[j], unique[i]];
+    }
+    return unique.slice(0, 5);
+  }, [feedPosts, petId]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -81,17 +92,6 @@ export default function PetProfileScreen() {
   }
 
   const showFollow = !!selectedPetId && selectedPetId !== petId;
-  const recommendedPetIds = useMemo(() => {
-    const ids = (feedPosts ?? [])
-      .map((post) => post.pet_id)
-      .filter((id) => id && id !== petId);
-    const unique = Array.from(new Set(ids));
-    for (let i = unique.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [unique[i], unique[j]] = [unique[j], unique[i]];
-    }
-    return unique.slice(0, 5);
-  }, [feedPosts, petId]);
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 20) }]}>

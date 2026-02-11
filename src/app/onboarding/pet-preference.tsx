@@ -10,7 +10,7 @@ export default function OnboardingPetPreference() {
   const [selected, setSelected] = useState<Preference | null>(null);
   const insets = useSafeAreaInsets();
 
-  const options: Array<{ id: Preference; label: string; emoji: string }> = [
+  const options: { id: Preference; label: string; emoji: string }[] = [
     { id: "dog", label: "Perritos", emoji: "🐶" },
     { id: "cat", label: "Gatitos", emoji: "🐱" },
     { id: "other", label: "Otro", emoji: "🐾" },

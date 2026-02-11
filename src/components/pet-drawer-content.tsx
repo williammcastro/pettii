@@ -5,7 +5,7 @@ import {
 import { usePets } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -17,7 +17,7 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
     usePetSelectionStore();
   const userId = user?.id;
   const { data: pets, isLoading } = usePets(userId, !loading);
-  const safePets = pets ?? [];
+  const safePets = useMemo(() => pets ?? [], [pets]);
 
   useEffect(() => {
     if (!loading && safePets.length > 0 && !selectedPetId) {

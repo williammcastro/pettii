@@ -49,7 +49,7 @@ export default function SocialScreen() {
   const isFocused = useIsFocused();
 
   const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: Array<{ item: any }> }) => {
+    ({ viewableItems }: { viewableItems: { item: any }[] }) => {
       const firstVisibleVideo = viewableItems.find(
         (v) => v.item?.media_type === "video"
       );
@@ -378,7 +378,7 @@ function PetHeader({
 function RecommendedHeader({
   posts,
 }: {
-  posts: Array<{ pet_id: string }>;
+  posts: { pet_id: string }[];
 }) {
   const petIds = useMemo(() => {
     const unique = Array.from(new Set(posts.map((post) => post.pet_id)));

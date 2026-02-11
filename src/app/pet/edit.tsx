@@ -115,7 +115,7 @@ export default function EditPetProfileModal() {
           }));
         const fileBody = decode(base64);
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("pet_media")
           .upload(storagePath, fileBody, {
             contentType: "image/jpeg",

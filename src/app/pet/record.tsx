@@ -62,19 +62,6 @@ export default function PetRecordModal() {
   });
   const [error, setError] = useState<string | null>(null);
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text>Cargando sesión...</Text>
-      </View>
-    );
-  }
-
-  if (!user) {
-    router.replace("/auth/login");
-    return null;
-  }
-
   useEffect(() => {
     if (!pet) return;
     setForm({
@@ -91,6 +78,19 @@ export default function PetRecordModal() {
       chronic_conditions: pet.chronic_conditions ?? "",
     });
   }, [pet]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>Cargando sesión...</Text>
+      </View>
+    );
+  }
+
+  if (!user) {
+    router.replace("/auth/login");
+    return null;
+  }
 
   const toggleSterilized = () => {
     setForm((prev) => ({
