@@ -147,6 +147,21 @@ export async function deletePostWithMedia(input: {
   storage_path?: string | null;
   pet_id?: string | null;
 }) {
+  if (input.storage_bucket && input.storage_path) {
+    const { error: storageError } = await supabase.storage
+      .from(input.storage_bucket)
+      .remove([input.storage_path]);
+
+    if (storageError) {
+      const message = storageError.message?.toLowerCase() ?? "";
+      const isMissingObject =
+        message.includes("not found") || message.includes("does not exist");
+      if (!isMissingObject) {
+        throw storageError;
+      }
+    }
+  }
+
   const { error } = await supabase.rpc("delete_post_with_media", {
     post_id_input: input.id,
   });
