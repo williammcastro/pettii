@@ -3,6 +3,7 @@ import {
   createPostWithMedia,
   createPostReport,
   fetchPublicFeedPosts,
+  fetchRankedFeedPosts,
   fetchFeedPostsForPet,
   fetchPostsByPet,
   followPet,
@@ -39,6 +40,18 @@ export function usePublicFeedPosts() {
   return useQuery({
     queryKey: ["posts", "feed", "public"],
     queryFn: fetchPublicFeedPosts,
+  });
+}
+
+export function useRankedFeedPosts(followerPetId?: string) {
+  return useQuery({
+    queryKey: ["posts", "feed", "ranked", followerPetId ?? null],
+    queryFn: () =>
+      fetchRankedFeedPosts({
+        follower_pet_id: followerPetId ?? null,
+        limit: 30,
+        offset: 0,
+      }),
   });
 }
 

@@ -1,51 +1,176 @@
-# Welcome to your Expo app 👋
+# Pettii (App móvil)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Pettii es una app móvil construida con Expo + React Native para una comunidad de mascotas, con funcionalidades de:
 
-## Get started
-Bienvenido 🐾
+- perfil y gestión de mascotas,
+- feed social (posts, likes, comentarios, follow entre mascotas),
+- catálogo de productos por veterinaria,
+- carrito y pedidos,
+- onboarding y autenticación.
 
-1. Install dependencies 
+La app usa Supabase para auth + base de datos + storage, React Query para estado de servidor y Zustand para estado local.
 
-   ```bash
-   pnpm install
-   ```
+## Stack
 
-2. Start the app
+- Expo / React Native
+- expo-router (file-based routing)
+- Supabase (`@supabase/supabase-js`)
+- React Query (`@tanstack/react-query`)
+- Zustand
+- pnpm (gestor de paquetes)
 
-   ```bash
-   pnpm expo start
-   ```
+## Estructura principal
 
-In the output, you'll find options to open the app in a
+- `src/app/`
+  - navegación y pantallas
+  - `src/app/_layout.tsx` (layout raíz)
+  - `src/app/(drawer)/_layout.tsx` (drawer)
+  - `src/app/(drawer)/(tabs)/_layout.tsx` (tabs)
+  - tabs principales: Home / Shop / Social
+- `src/features/`
+  - módulos por dominio (`pets`, `posts`, `products`, `orders`, `clinics`)
+  - cada módulo separa `api.ts` y `hooks.ts`
+- `src/store/`
+  - Zustand para auth, selección de mascota y carrito
+- `src/providers/`
+  - providers de app (React Query + bootstrap de auth/onboarding)
+- `src/lib/`
+  - clientes y utilidades transversales (Supabase, currency)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Backend y datos
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Supabase
 
-## Get a fresh project
+Cliente configurado en `src/lib/supabase.ts` con:
 
-When you're ready, run:
+- `EXPO_PUBLIC_SUPABASE_URL`
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+### Migraciones
+
+- En este repo existe `supabase/` para configuración local.
+- El esquema compartido principal (incluyendo social, productos, reportes y feed rankeado) se ha venido gestionando en `pettii_vet/supabase/migrations`.
+
+## Flujos funcionales actuales
+
+### 1) Auth + onboarding
+
+- Login/register por email/password.
+- Gate de onboarding antes de entrar al flujo principal.
+
+### 2) Mascotas
+
+- CRUD básico de mascotas.
+- Ficha de salud (campos extendidos) y recordatorios.
+- Selección de mascota activa en drawer (estado global).
+
+### 3) Social
+
+- Publicación de imagen/video (storage `pet_media`).
+- Feed con likes, comentarios y follow entre mascotas.
+- Perfil público de mascota con stats y galería.
+
+### 4) Shop / pedidos
+
+- Catálogo por clínica primaria del usuario.
+- Filtros por categoría y chip especial `Promo`.
+- Badges de producto (`Nuevo`, `Promo`, `Combo`, `Obsequio`).
+- Modal de detalle de producto con `stock`.
+- Carrito local + creación de pedido (cash on delivery).
+- Formato de moneda centralizado en `src/lib/currency.ts`.
+
+## Feed social: moderación, reportes y ranking
+
+### Reportes de contenido (`post_reports`)
+
+Se implementó flujo real de reportes de publicaciones:
+
+- tabla `post_reports` con razones:
+  - `spam`
+  - `violence_abuse`
+  - `misinformation`
+  - `other`
+- unicidad por `(post_id, reporter_user_id)` para evitar duplicados.
+- botón `Reportar` en la UI del feed conectado a Supabase.
+
+### Umbral automático de seguridad
+
+Se agregó lógica de umbral por reportes:
+
+- si un post acumula `>= 3` reportes `open`, se mueve a:
+  - `moderation_status = 'pending'`
+  - `moderation_reason = 'reported_by_users_threshold'`
+- además se encola `moderation_jobs` para revisión.
+
+Con esto, el contenido reportado puede salir del feed automáticamente mientras se revisa.
+
+### Feed rankeado (`fetch_ranked_feed`)
+
+Se reemplazó el feed cronológico simple por RPC rankeada:
+
+- función SQL: `fetch_ranked_feed(p_follower_pet_id, p_limit, p_offset)`
+- solo trae posts:
+  - `visibility = 'public'`
+  - `moderation_status = 'approved'`
+- score inicial combina:
+  - recencia,
+  - engagement (likes + comentarios ponderados),
+  - boost social (mascotas seguidas),
+  - penalización por reportes abiertos.
+- incluye límite por mascota para reducir repetición de autor.
+
+### React Query y refresco
+
+- al reportar, se invalida cache de feed (`posts/feed`) para refresco inmediato;
+- al crear pedidos, se invalida cache de productos para actualizar stock en UI.
+
+## Setup local
+
+## Requisitos
+
+- Node.js LTS
+- pnpm
+- Expo CLI (vía `pnpm` scripts)
+- variables de entorno en `.env`
+
+## Instalar
 
 ```bash
-pnpm run reset-project
+pnpm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Ejecutar
 
-## Learn more
+```bash
+pnpm start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Atajos:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+pnpm android
+pnpm ios
+pnpm web
+```
 
-## Join the community
+## Lint
 
-Join our community of developers creating universal apps.
+```bash
+pnpm lint
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Variables de entorno
+
+En `.env`:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=...
+EXPO_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+## Notas para desarrollo
+
+- Usar siempre `pnpm` (no `npm`).
+- Seguir la organización por `features/*` para mantener APIs/hooks desacoplados.
+- Mantener reglas críticas (moderación/reportes/ranking) en backend (migraciones/RPC), no en lógica cliente.
+- Cuando se agreguen columnas o reglas de negocio de feed, documentarlas aquí y en migraciones.

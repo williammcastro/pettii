@@ -92,6 +92,22 @@ export async function fetchPublicFeedPosts(): Promise<PostWithMedia[]> {
   return attachSignedUrls(data ?? []);
 }
 
+export async function fetchRankedFeedPosts(input?: {
+  follower_pet_id?: string | null;
+  limit?: number;
+  offset?: number;
+}): Promise<PostWithMedia[]> {
+  const { data, error } = await supabase.rpc("fetch_ranked_feed", {
+    p_follower_pet_id: input?.follower_pet_id ?? null,
+    p_limit: input?.limit ?? 30,
+    p_offset: input?.offset ?? 0,
+  });
+
+  if (error) throw error;
+
+  return attachSignedUrls((data ?? []) as Post[]);
+}
+
 export async function createPostWithMedia(input: {
   owner_user_id: string;
   pet_id: string;

@@ -11,7 +11,7 @@ import {
   usePostLikeCount,
   usePostLikeStatus,
   useProfilesByIds,
-  usePublicFeedPosts,
+  useRankedFeedPosts,
   useUnfollowPet,
   useUnlikePost,
 } from "@/features/posts/hooks";
@@ -43,7 +43,7 @@ export default function SocialScreen() {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const selectedPetId = usePetSelectionStore((s) => s.selectedPetId);
-  const { data: posts, isLoading } = usePublicFeedPosts();
+  const { data: posts, isLoading } = useRankedFeedPosts(selectedPetId ?? undefined);
   const followMutation = useFollowPet();
   const unfollowMutation = useUnfollowPet();
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
