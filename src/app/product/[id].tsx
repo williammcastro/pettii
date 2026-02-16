@@ -84,6 +84,9 @@ export default function ProductDetailModal() {
             {formatMoneyFromCents(product.price_cents, product.currency)}
           </Text>
         )}
+        {product.stock != null && (
+          <Text style={styles.meta}>Cantidad disponible: {product.stock}</Text>
+        )}
 
         <Pressable style={styles.buyButton} onPress={handleAddToCart}>
           <Text style={styles.buyText}>Agregar al carrito</Text>

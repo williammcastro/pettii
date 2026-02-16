@@ -35,6 +35,7 @@ function normalizeLabel(value?: string | null) {
   if (raw === "nuevo") return "Nuevo";
   if (raw === "promo") return "Promo";
   if (raw === "combo") return "Combo";
+  if (raw === "obsequio") return "Obsequio";
   return null;
 }
 

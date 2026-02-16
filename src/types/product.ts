@@ -8,6 +8,7 @@ export type Product = {
   price_cents?: number | null;
   currency: string;
   category?: string[] | string | null;
+  stock?: number | null;
   image_url?: string | null;
   image_signed_url?: string | null;
   is_active: boolean;
