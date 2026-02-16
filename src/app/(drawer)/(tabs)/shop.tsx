@@ -81,6 +81,11 @@ export default function ShopScreen() {
   const filteredProducts = useMemo(() => {
     const productList = products ?? [];
     if (selectedCategory === "Todos") return productList;
+    if (selectedCategory === "Promo") {
+      return productList.filter(
+        (product) => normalizeLabel(product.label)?.toLowerCase() === "promo"
+      );
+    }
     const selected = normalizeCategory(selectedCategory);
     return productList.filter((product) =>
       extractProductCategories(product.category).some(
@@ -210,6 +215,22 @@ export default function ShopScreen() {
               ]}
             >
               Todos
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setSelectedCategory("Promo")}
+            style={[
+              styles.chip,
+              selectedCategory === "Promo" && styles.chipSelected,
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                selectedCategory === "Promo" && styles.chipTextSelected,
+              ]}
+            >
+              Promo
             </Text>
           </Pressable>
           {CATEGORY_OPTIONS.map((category) => (
