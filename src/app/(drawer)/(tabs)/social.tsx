@@ -2,6 +2,7 @@
 import { usePetById } from "@/features/pets/hooks";
 import {
   useCreatePostComment,
+  useCreatePostReport,
   useFollowPet,
   useFollowStatus,
   useLikePost,
@@ -25,6 +26,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -488,6 +490,7 @@ function PostActions({
   const { data: commentCount } = usePostCommentCount(postId);
   const likeMutation = useLikePost();
   const unlikeMutation = useUnlikePost();
+  const reportMutation = useCreatePostReport();
 
   const toggleLike = async () => {
     if (isLoading) return;
@@ -498,6 +501,62 @@ function PostActions({
     }
   };
 
+  const submitReport = async (
+    reason: "spam" | "violence_abuse" | "misinformation" | "other"
+  ) => {
+    try {
+      await reportMutation.mutateAsync({
+        post_id: postId,
+        reporter_user_id: userId,
+        reason,
+      });
+      Alert.alert("Reporte enviado", "Gracias por ayudarnos a cuidar la comunidad.");
+    } catch (error: any) {
+      const message = (error?.message ?? "").toLowerCase();
+      const isDuplicate =
+        message.includes("duplicate") ||
+        message.includes("unique") ||
+        message.includes("23505");
+      Alert.alert(
+        isDuplicate ? "Ya reportaste este contenido" : "No se pudo enviar el reporte",
+        isDuplicate
+          ? "Tu reporte anterior ya fue recibido."
+          : error?.message ?? "Intenta de nuevo."
+      );
+    }
+  };
+
+  const handleReport = () => {
+    if (reportMutation.isPending) return;
+    Alert.alert("Reportar contenido", "Selecciona un motivo", [
+      {
+        text: "Spam",
+        onPress: () => {
+          void submitReport("spam");
+        },
+      },
+      {
+        text: "Violencia/Maltrato",
+        onPress: () => {
+          void submitReport("violence_abuse");
+        },
+      },
+      {
+        text: "Desinformación",
+        onPress: () => {
+          void submitReport("misinformation");
+        },
+      },
+      {
+        text: "Otro",
+        onPress: () => {
+          void submitReport("other");
+        },
+      },
+      { text: "Cancelar", style: "cancel" },
+    ]);
+  };
+
   return (
     <View
       style={{
@@ -505,28 +564,40 @@ function PostActions({
         paddingVertical: 10,
       }}
     >
-      <View style={{ flexDirection: "row", gap: 16 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <Pressable
+            onPress={toggleLike}
+            disabled={isLoading || likeMutation.isPending || unlikeMutation.isPending}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+          >
+            <MaterialCommunityIcons
+              name={isLiked ? "heart" : "heart-outline"}
+              size={24}
+              color={isLiked ? "#000" : "#333"}
+            />
+            <Text style={{ color: "#333", fontWeight: "600" }}>
+              {likeCount ?? 0}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={onOpenComments}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+          >
+            <MaterialCommunityIcons name="comment-outline" size={24} color="#333" />
+            <Text style={{ color: "#333", fontWeight: "600" }}>
+              {commentCount ?? 0}
+            </Text>
+          </Pressable>
+        </View>
         <Pressable
-          onPress={toggleLike}
-          disabled={isLoading || likeMutation.isPending || unlikeMutation.isPending}
+          onPress={handleReport}
+          disabled={reportMutation.isPending}
           style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
         >
-          <MaterialCommunityIcons
-            name={isLiked ? "heart" : "heart-outline"}
-            size={24}
-            color={isLiked ? "#000" : "#333"}
-          />
-          <Text style={{ color: "#333", fontWeight: "600" }}>
-            {likeCount ?? 0}
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={onOpenComments}
-          style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-        >
-          <MaterialCommunityIcons name="comment-outline" size={24} color="#333" />
-          <Text style={{ color: "#333", fontWeight: "600" }}>
-            {commentCount ?? 0}
+          <MaterialCommunityIcons name="flag-outline" size={20} color="#555" />
+          <Text style={{ color: "#555", fontWeight: "600" }}>
+            {reportMutation.isPending ? "Enviando..." : "Reportar"}
           </Text>
         </Pressable>
       </View>

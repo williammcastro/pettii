@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createPostWithMedia,
+  createPostReport,
   fetchPublicFeedPosts,
   fetchFeedPostsForPet,
   fetchPostsByPet,
@@ -194,6 +195,17 @@ export function usePostCommentCount(postId?: string) {
     queryKey: ["post-comment-count", postId],
     queryFn: () => fetchPostCommentCount(postId!),
     enabled: !!postId,
+  });
+}
+
+export function useCreatePostReport() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: createPostReport,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["posts", "feed"] });
+    },
   });
 }
 

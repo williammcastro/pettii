@@ -267,6 +267,27 @@ export async function createPostComment(input: {
   if (error) throw error;
 }
 
+export type PostReportReason =
+  | "spam"
+  | "violence_abuse"
+  | "misinformation"
+  | "other";
+
+export async function createPostReport(input: {
+  post_id: string;
+  reporter_user_id: string;
+  reason: PostReportReason;
+  details?: string | null;
+}) {
+  const { error } = await supabase.from("post_reports").insert({
+    post_id: input.post_id,
+    reporter_user_id: input.reporter_user_id,
+    reason: input.reason,
+    details: input.details ?? null,
+  });
+  if (error) throw error;
+}
+
 export async function fetchPostCommentCount(postId: string): Promise<number> {
   const { count, error } = await supabase
     .from("post_comments")
