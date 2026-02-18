@@ -9,13 +9,16 @@ import {
 } from "@/features/posts/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
+import { PostWithMedia } from "@/types/post";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import { useLayoutEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import { useVideoPlayer, VideoView } from "expo-video";
 import {
   ActivityIndicator,
   FlatList,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -41,6 +44,7 @@ export default function PetProfileScreen() {
     selectedPetId ?? undefined,
     petId || undefined
   );
+  const [activePost, setActivePost] = useState<PostWithMedia | null>(null);
   const followMutation = useFollowPet();
   const unfollowMutation = useUnfollowPet();
 
@@ -186,7 +190,7 @@ export default function PetProfileScreen() {
         columnWrapperStyle={styles.gridRow}
         contentContainerStyle={styles.gridContent}
         renderItem={({ item }) => (
-          <View style={styles.gridTile}>
+          <Pressable style={styles.gridTile} onPress={() => setActivePost(item)}>
             {item.media_type === "image" && item.media_url ? (
               <Image
                 source={{ uri: item.media_url }}
@@ -199,10 +203,71 @@ export default function PetProfileScreen() {
                 <Text style={styles.videoIcon}>▶</Text>
               </View>
             )}
-          </View>
+          </Pressable>
         )}
       />
+      <MediaModal
+        post={activePost}
+        onClose={() => setActivePost(null)}
+      />
     </View>
+  );
+}
+
+function MediaModal({
+  post,
+  onClose,
+}: {
+  post: PostWithMedia | null;
+  onClose: () => void;
+}) {
+  const url = post?.media_url ?? "";
+  const player = useVideoPlayer(url, (p) => {
+    p.loop = false;
+    if (url) p.play();
+  });
+
+  useEffect(() => {
+    if (post?.media_type === "video" && url) {
+      player.play();
+      return;
+    }
+    player.pause();
+  }, [player, post?.media_type, url]);
+
+  return (
+    <Modal visible={!!post} animationType="slide" onRequestClose={onClose}>
+      <View style={styles.mediaModalContainer}>
+        {post?.media_type === "video" ? (
+          url ? (
+            <VideoView
+              player={player}
+              style={styles.mediaModalContent}
+              fullscreenOptions={{ enable: true }}
+              allowsPictureInPicture
+              nativeControls
+            />
+          ) : (
+            <View style={styles.mediaFallback}>
+              <Text style={styles.mediaFallbackText}>Sin video</Text>
+            </View>
+          )
+        ) : url ? (
+          <Image
+            source={{ uri: url }}
+            style={styles.mediaModalContent}
+            contentFit="contain"
+          />
+        ) : (
+          <View style={styles.mediaFallback}>
+            <Text style={styles.mediaFallbackText}>Sin imagen</Text>
+          </View>
+        )}
+        <Pressable onPress={onClose} style={styles.mediaCloseButton}>
+          <Text style={styles.mediaCloseText}>Cerrar</Text>
+        </Pressable>
+      </View>
+    </Modal>
   );
 }
 
@@ -309,4 +374,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   videoIcon: { color: "#333", fontWeight: "700" },
+  mediaModalContainer: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  mediaModalContent: {
+    width: "100%",
+    height: "100%",
+  },
+  mediaFallback: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mediaFallbackText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  mediaCloseButton: {
+    position: "absolute",
+    top: 48,
+    right: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
+  mediaCloseText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
 });
