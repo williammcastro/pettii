@@ -12,7 +12,9 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -187,8 +189,12 @@ export default function PetRecordModal() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top, 20) }]}>
-      <View style={styles.header}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? Math.max(insets.top, 20) : 0}
+    >
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
         <Text style={styles.title}>
           Ficha de {pet?.name ?? "mascota"}
         </Text>
@@ -204,7 +210,16 @@ export default function PetRecordModal() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.card}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[
+          styles.card,
+          {
+            paddingBottom:
+              Math.max(insets.bottom, 20) + (editMode ? 140 : 20),
+          },
+        ]}
+      >
         <Text style={styles.sectionTitle}>Información básica</Text>
         {editMode ? (
           <>
@@ -418,97 +433,114 @@ export default function PetRecordModal() {
         transparent
         onRequestClose={() => setShowReminderModal(false)}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>
-              {editingReminderId ? "Editar recordatorio" : "Nuevo recordatorio"}
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Nombre del recordatorio"
-              value={reminderTitle}
-              onChangeText={setReminderTitle}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Fecha (YYYY-MM-DD)"
-              value={reminderDate}
-              onChangeText={setReminderDate}
-            />
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Descripción (opcional)"
-              value={reminderDescription}
-              onChangeText={setReminderDescription}
-              multiline
-            />
-            <View style={styles.modalActions}>
-              <Pressable
-                style={styles.secondaryButton}
-                onPress={() => {
-                  setShowReminderModal(false);
-                  setEditingReminderId(null);
-                }}
+        <KeyboardAvoidingView
+          style={styles.modalKeyboard}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 12 : 0}
+        >
+          <View style={styles.modalBackdrop}>
+            <View
+              style={[
+                styles.modalCard,
+                { paddingBottom: Math.max(insets.bottom, 16) },
+              ]}
+            >
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.modalContent}
+                showsVerticalScrollIndicator={false}
               >
-                <Text style={styles.secondaryText}>Cancelar</Text>
-              </Pressable>
-              {editingReminderId ? (
-                <Pressable
-                  style={[
-                    styles.primaryButton,
-                    (isUpdatingReminder || isDeletingReminder) &&
-                      styles.disabledButton,
-                  ]}
-                  onPress={async () => {
-                    await handleCreateReminder();
-                  }}
-                  disabled={isUpdatingReminder || isDeletingReminder}
-                >
-                  <Text style={styles.primaryText}>
-                    {isUpdatingReminder ? "Guardando..." : "Guardar"}
-                  </Text>
-                </Pressable>
-              ) : (
-                <Pressable
-                  style={[
-                    styles.primaryButton,
-                    isCreatingReminder && styles.disabledButton,
-                  ]}
-                  onPress={handleCreateReminder}
-                  disabled={isCreatingReminder}
-                >
-                  <Text style={styles.primaryText}>
-                    {isCreatingReminder ? "Guardando..." : "Guardar"}
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-            {editingReminderId ? (
-              <Pressable
-                style={[
-                  styles.deleteButton,
-                  isDeletingReminder && styles.disabledButton,
-                ]}
-                onPress={async () => {
-                  if (!editingReminderId) return;
-                  await removeReminder(editingReminderId);
-                  setShowReminderModal(false);
-                  setEditingReminderId(null);
-                  setReminderTitle("");
-                  setReminderDescription("");
-                  setReminderDate("");
-                }}
-                disabled={isDeletingReminder}
-              >
-                <Text style={styles.deleteText}>
-                  {isDeletingReminder ? "Borrando..." : "Borrar recordatorio"}
+                <Text style={styles.modalTitle}>
+                  {editingReminderId ? "Editar recordatorio" : "Nuevo recordatorio"}
                 </Text>
-              </Pressable>
-            ) : null}
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nombre del recordatorio"
+                  value={reminderTitle}
+                  onChangeText={setReminderTitle}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Fecha (YYYY-MM-DD)"
+                  value={reminderDate}
+                  onChangeText={setReminderDate}
+                />
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Descripción (opcional)"
+                  value={reminderDescription}
+                  onChangeText={setReminderDescription}
+                  multiline
+                />
+                <View style={styles.modalActions}>
+                  <Pressable
+                    style={styles.secondaryButton}
+                    onPress={() => {
+                      setShowReminderModal(false);
+                      setEditingReminderId(null);
+                    }}
+                  >
+                    <Text style={styles.secondaryText}>Cancelar</Text>
+                  </Pressable>
+                  {editingReminderId ? (
+                    <Pressable
+                      style={[
+                        styles.primaryButton,
+                        (isUpdatingReminder || isDeletingReminder) &&
+                          styles.disabledButton,
+                      ]}
+                      onPress={async () => {
+                        await handleCreateReminder();
+                      }}
+                      disabled={isUpdatingReminder || isDeletingReminder}
+                    >
+                      <Text style={styles.primaryText}>
+                        {isUpdatingReminder ? "Guardando..." : "Guardar"}
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      style={[
+                        styles.primaryButton,
+                        isCreatingReminder && styles.disabledButton,
+                      ]}
+                      onPress={handleCreateReminder}
+                      disabled={isCreatingReminder}
+                    >
+                      <Text style={styles.primaryText}>
+                        {isCreatingReminder ? "Guardando..." : "Guardar"}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+                {editingReminderId ? (
+                  <Pressable
+                    style={[
+                      styles.deleteButton,
+                      isDeletingReminder && styles.disabledButton,
+                    ]}
+                    onPress={async () => {
+                      if (!editingReminderId) return;
+                      await removeReminder(editingReminderId);
+                      setShowReminderModal(false);
+                      setEditingReminderId(null);
+                      setReminderTitle("");
+                      setReminderDescription("");
+                      setReminderDate("");
+                    }}
+                    disabled={isDeletingReminder}
+                  >
+                    <Text style={styles.deleteText}>
+                      {isDeletingReminder ? "Borrando..." : "Borrar recordatorio"}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -564,6 +596,7 @@ const styles = StyleSheet.create({
   reminderSoon: { borderLeftWidth: 4, borderLeftColor: "#f39c12" },
   reminderOverdue: { borderLeftWidth: 4, borderLeftColor: "#e74c3c" },
   reminderNeutral: { borderLeftWidth: 4, borderLeftColor: "#bbb" },
+  modalKeyboard: { flex: 1 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -574,6 +607,10 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    maxHeight: "85%",
+  },
+  modalContent: {
+    paddingBottom: 4,
   },
   modalTitle: { fontSize: 16, fontWeight: "700", marginBottom: 12 },
   modalActions: {

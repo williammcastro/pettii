@@ -29,6 +29,7 @@ const CATEGORY_OPTIONS = [
   "Juguetes",
   "Servicios",
 ] as const;
+const LABEL_FILTER_OPTIONS = ["Obsequio", "Nuevo"] as const;
 
 function normalizeLabel(value?: string | null) {
   const raw = value?.trim().toLowerCase();
@@ -81,9 +82,15 @@ export default function ShopScreen() {
   const filteredProducts = useMemo(() => {
     const productList = products ?? [];
     if (selectedCategory === "Todos") return productList;
-    if (selectedCategory === "Promo") {
+    if (
+      selectedCategory === "Promo" ||
+      selectedCategory === "Obsequio" ||
+      selectedCategory === "Nuevo"
+    ) {
       return productList.filter(
-        (product) => normalizeLabel(product.label)?.toLowerCase() === "promo"
+        (product) =>
+          normalizeLabel(product.label)?.toLowerCase() ===
+          selectedCategory.toLowerCase()
       );
     }
     const selected = normalizeCategory(selectedCategory);
@@ -249,6 +256,25 @@ export default function ShopScreen() {
                 ]}
               >
                 {category}
+              </Text>
+            </Pressable>
+          ))}
+          {LABEL_FILTER_OPTIONS.map((labelFilter) => (
+            <Pressable
+              key={labelFilter}
+              onPress={() => setSelectedCategory(labelFilter)}
+              style={[
+                styles.chip,
+                selectedCategory === labelFilter && styles.chipSelected,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.chipText,
+                  selectedCategory === labelFilter && styles.chipTextSelected,
+                ]}
+              >
+                {labelFilter}
               </Text>
             </Pressable>
           ))}
