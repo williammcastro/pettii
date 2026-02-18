@@ -42,6 +42,13 @@ export default function RootLayout() {
               options={{ presentation: "modal", title: "Mis pedidos" }}
             />
             <Stack.Screen
+              name="pet/[id]"
+              options={{
+                title: "Perfil de mascota",
+                headerBackButtonDisplayMode: "minimal",
+              }}
+            />
+            <Stack.Screen
               name="product/[id]"
               options={{ presentation: "modal", headerShown: false }}
             />
