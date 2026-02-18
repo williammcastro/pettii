@@ -84,6 +84,7 @@ export default function ShopScreen() {
     if (selectedCategory === "Todos") return productList;
     if (
       selectedCategory === "Promo" ||
+      selectedCategory === "Combo" ||
       selectedCategory === "Obsequio" ||
       selectedCategory === "Nuevo"
     ) {
@@ -238,6 +239,22 @@ export default function ShopScreen() {
               ]}
             >
               Promo
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setSelectedCategory("Combo")}
+            style={[
+              styles.chip,
+              selectedCategory === "Combo" && styles.chipSelected,
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                selectedCategory === "Combo" && styles.chipTextSelected,
+              ]}
+            >
+              Combo
             </Text>
           </Pressable>
           {CATEGORY_OPTIONS.map((category) => (
