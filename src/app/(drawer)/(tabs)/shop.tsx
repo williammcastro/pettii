@@ -1,6 +1,10 @@
 // src/app/(tabs)/index.tsx
 import { usePrimaryClinic } from "@/features/clinics/hooks";
 import { useProductsForPrimaryClinic } from "@/features/products/hooks";
+import {
+  getCachedClinicLogoUrl,
+  setCachedClinicLogoUrl,
+} from "@/lib/clinic-branding-cache";
 import { formatMoneyFromCents } from "@/lib/currency";
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
@@ -62,6 +66,9 @@ export default function ShopScreen() {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
+  const [cachedClinicLogoUrl, setCachedClinicLogoState] = useState<string | null>(
+    null
+  );
   const userId = user?.id;
   const cartItems = useCartStore((s) => s.items);
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -138,6 +145,29 @@ export default function ShopScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    if (!userId) return;
+
+    getCachedClinicLogoUrl(userId).then((cached) => {
+      if (active) setCachedClinicLogoState(cached);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const latestLogo =
+      primaryClinic?.logo_signed_url ?? primaryClinic?.logo_url ?? null;
+    if (!latestLogo) return;
+
+    setCachedClinicLogoState(latestLogo);
+    void setCachedClinicLogoUrl(userId, latestLogo);
+  }, [primaryClinic?.logo_signed_url, primaryClinic?.logo_url, userId]);
+
   if (loading || !onboardingChecked || !onboardingDone) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -154,18 +184,20 @@ export default function ShopScreen() {
   const handleCartPress = () => {
     router.push("/cart");
   };
+  const clinicLogoUri =
+    primaryClinic?.logo_signed_url ??
+    primaryClinic?.logo_url ??
+    cachedClinicLogoUrl ??
+    null;
 
   return (
     <View style={styles.container}>
       {hasPrimaryClinic && (
         <View style={styles.clinicHeader}>
-          {primaryClinic?.logo_signed_url || primaryClinic?.logo_url ? (
+          {clinicLogoUri ? (
             <Image
               source={{
-                uri:
-                  primaryClinic.logo_signed_url ??
-                  primaryClinic.logo_url ??
-                  "",
+                uri: clinicLogoUri,
               }}
               style={styles.clinicLogo}
               contentFit="cover"
