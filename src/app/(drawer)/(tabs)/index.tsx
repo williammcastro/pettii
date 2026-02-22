@@ -10,6 +10,7 @@ import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import LottieView from "lottie-react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
 import { useEffect, useMemo, useState } from "react";
@@ -24,10 +25,13 @@ import {
   View,
 } from "react-native";
 
+const HOME_CONFETTI_SHOWN_KEY = "home_confetti_shown_after_onboarding_v1";
+
 export default function HomeScreen() {
   const { user, loading } = useAuthStore();
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [showFirstHomeConfetti, setShowFirstHomeConfetti] = useState(false);
   const { selectedPetId, setSelectedPetId } = usePetSelectionStore();
   const userId = user?.id;
   const { data: posts, isLoading: isPostsLoading } = usePetPosts(
@@ -81,6 +85,25 @@ export default function HomeScreen() {
       setSelectedPetId(safePets[0].id);
     }
   }, [loading, safePets, selectedPetId, setSelectedPetId]);
+
+  useEffect(() => {
+    let active = true;
+    if (!onboardingChecked || !onboardingDone) return;
+
+    AsyncStorage.getItem(HOME_CONFETTI_SHOWN_KEY)
+      .then(async (value) => {
+        if (!active || value === "true") return;
+        setShowFirstHomeConfetti(true);
+        await AsyncStorage.setItem(HOME_CONFETTI_SHOWN_KEY, "true");
+      })
+      .catch(() => {
+        if (active) setShowFirstHomeConfetti(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [onboardingChecked, onboardingDone]);
 
   // Mientras carga la sesión o no hay usuario, no renderizamos contenido
   if (loading || !user || !onboardingChecked || !onboardingDone) return null;
@@ -407,6 +430,20 @@ export default function HomeScreen() {
           />
         </View>
       )}
+
+      {showFirstHomeConfetti && (
+        <View pointerEvents="none" style={styles.confettiOverlay}>
+          <LottieView
+            source={require("../../../../assets/lottie/confetti_two_side.json")}
+            autoPlay
+            loop={false}
+            onAnimationFinish={(isCancelled) => {
+              if (!isCancelled) setShowFirstHomeConfetti(false);
+            }}
+            style={styles.confettiOverlayLottie}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -505,6 +542,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 10,
+  },
+  confettiOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 11,
+  },
+  confettiOverlayLottie: {
+    width: "100%",
+    height: "100%",
   },
 });
 
