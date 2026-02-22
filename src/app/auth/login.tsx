@@ -35,6 +35,10 @@ export default function LoginScreen() {
     router.push('/auth/register');
   };
 
+  const goToRecover = () => {
+    router.push("/auth/recover");
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Iniciar sesión en Pettii</Text>
@@ -60,10 +64,15 @@ export default function LoginScreen() {
         <Text style={styles.primaryText}>Entrar</Text>
       </Pressable>
 
+
       <View style={{ height: 16 }} />
 
       <Pressable style={styles.secondaryButton} onPress={goToRegister}>
         <Text style={styles.secondaryText}>Crear cuenta</Text>
+      </Pressable>
+
+      <Pressable style={styles.linkButton} onPress={goToRecover}>
+        <Text style={styles.linkText}>¿Olvidaste tu contraseña?</Text>
       </Pressable>
     </View>
   );
@@ -91,7 +100,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   secondaryButton: {
-    backgroundColor: '#eee',
+    backgroundColor: '#ddd',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
@@ -100,5 +109,13 @@ const styles = StyleSheet.create({
     color: '#111',
     fontWeight: '600',
     fontSize: 16,
+  },
+  linkButton: {
+    alignItems: "center",
+    marginTop: 25,
+  },
+  linkText: {
+    color: "#0a7ea4",
+    fontWeight: "600",
   },
 });
