@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { useState } from "react";
+import { requestTrackingPermissionsAsync } from "expo-tracking-transparency";
+import LottieView from "lottie-react-native";
+import { useEffect, useRef, useState } from "react";
 import {
   Linking,
   Platform,
@@ -10,12 +12,19 @@ import {
   Text,
   View,
 } from "react-native";
-import { requestTrackingPermissionsAsync } from "expo-tracking-transparency";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function OnboardingTerms() {
+  const START_FRAME = 0;
+  const END_FRAME = 90; // ajusta este valor para cortar el final
+
   const [accepted, setAccepted] = useState(false);
   const insets = useSafeAreaInsets();
+  const lottieRef = useRef<LottieView>(null);
+
+  useEffect(() => {
+    lottieRef.current?.play(START_FRAME, END_FRAME);
+  }, [START_FRAME, END_FRAME]);
 
   const handleToggle = async (value: boolean) => {
     setAccepted(value);
@@ -44,6 +53,14 @@ export default function OnboardingTerms() {
         >
           <Text style={styles.link}>Ver política de privacidad</Text>
         </Pressable>
+
+        <LottieView
+          ref={lottieRef}
+          source={require("../../../assets/lottie/cat_error.json")}
+          autoPlay={false}
+          loop
+          style={styles.lottie}
+        />
 
         <View style={styles.switchRow}>
           <Text style={styles.switchLabel}>
@@ -107,6 +124,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     marginBottom: 20,
+  },
+    lottie: {
+    width: 350,
+    height: 350,
+    marginBottom: 8,
   },
   primaryButton: {
     flex: 1,

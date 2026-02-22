@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import LottieView from "lottie-react-native";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -14,6 +15,7 @@ import {
 
 export default function OnboardingClinicCode() {
   const [code, setCode] = useState("");
+  const [showConfetti, setShowConfetti] = useState(true);
 
   const handleNext = async () => {
     await AsyncStorage.setItem("onboarding_clinic_code", code.trim());
@@ -33,7 +35,7 @@ export default function OnboardingClinicCode() {
         <View style={styles.content}>
           <Text style={styles.title}>Código de veterinaria</Text>
           <Text style={styles.subtitle}>
-            Ingresa el código de la veterinaria.
+            Ya estamos casi listos, Ahora por favor ingresa el código de tu veterinaria
           </Text>
           <TextInput
             value={code}
@@ -42,6 +44,30 @@ export default function OnboardingClinicCode() {
             style={styles.input}
           />
         </View>
+
+        <View style={styles.animationStack}>
+          <LottieView
+            source={require("../../../assets/lottie/happy_dog.json")}
+            autoPlay
+            loop
+            speed={0.5}
+            style={styles.lottieHappyDog}
+          />
+          {showConfetti && (
+            <LottieView
+              source={require("../../../assets/lottie/confetti_two_side.json")}
+              autoPlay
+              loop={false}
+              speed={0.5}
+              onAnimationFinish={(isCancelled) => {
+                if (!isCancelled) setShowConfetti(false);
+              }}
+              style={styles.confettiOverlay}
+            />
+          )}
+        </View>
+
+
 
         <View style={styles.actions}>
           <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
@@ -87,6 +113,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     marginBottom: 20,
+  },
+  lottie: {
+    width: 350,
+    height: 350,
+    marginBottom: 8,
+  },
+  lottieHappyDog: {
+    width: 450,
+    height: 450,
+    marginBottom: 8,
+  },
+  animationStack: {
+    width: 350,
+    height: 350,
+    alignSelf: "center",
+    marginBottom: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  confettiOverlay: {
+    position: "absolute",
+    width: 350,
+    height: 350,
   },
   primaryButton: {
     flex: 1,

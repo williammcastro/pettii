@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import LottieView from "lottie-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,6 +47,33 @@ export default function OnboardingPetPreference() {
           ))}
         </View>
       </View>
+
+      { selected === "dog" && (
+        <LottieView
+        source={require("../../../assets/lottie/walking_dog.json")}
+        autoPlay
+        loop
+        style={styles.lottie}
+        />
+      )}
+      { selected === "cat" && (
+        <LottieView
+        source={require("../../../assets/lottie/bad_cat_mug.json")}
+        autoPlay
+        loop={false}
+        speed={0.5}
+        style={styles.lottie}
+        />
+      )}
+      { selected === "other" && (
+        <LottieView
+        source={require("../../../assets/lottie/cat_in_box.json")}
+        autoPlay
+        loop={false}
+        speed={0.5}
+        style={styles.lottie}
+        />
+      )}
 
       <View style={styles.actions}>
         <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
@@ -96,6 +124,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     marginBottom: 20,
+  },
+  lottie: {
+    width: 350,
+    height: 350,
+    marginBottom: 8,
   },
   primaryButton: {
     flex: 1,

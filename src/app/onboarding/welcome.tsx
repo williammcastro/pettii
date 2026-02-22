@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import LottieView from "lottie-react-native";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,11 +15,17 @@ export default function OnboardingWelcome() {
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 20) }]}>
       <View style={styles.content}>
         <Text style={styles.title}>Bienvenido a Pettii</Text>
+        <LottieView
+          source={require("../../../assets/lottie/tamed_puppy.json")}
+          autoPlay
+          loop
+          style={styles.lottie}
+        />
+      </View>
         <Text style={styles.subtitle}>
           Tu app para el cuidado de mascotas, veterinarias y una comunidad
           pensada para ti.
         </Text>
-      </View>
 
       <Pressable
         style={styles.primaryButton}
@@ -38,17 +45,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   content: {
-    marginTop: 60,
+    marginTop: 20,
     gap: 12,
+    alignItems: "center",
+  },
+  lottie: {
+    width: 450,
+    height: 450,
+    marginBottom: 8,
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
     color: "#111",
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
     color: "#555",
+    textAlign: "center",
   },
   primaryButton: {
     backgroundColor: "#111",
