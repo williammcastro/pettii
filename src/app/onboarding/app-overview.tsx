@@ -1,6 +1,31 @@
 import { router } from "expo-router";
+import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const OVERVIEW_ITEMS = [
+  {
+    title: "1. Ficha de la mascota",
+    text:
+      "Lleva el historial de salud y crea recordatorios para vacunas, desparasitación y controles importantes.",
+  },
+  {
+    title: "2. Catálogo y pedidos",
+    text: "Se el primero en enterarte de promociones, obsequios y novedades de tu veterinaria y realiza pedidos desde la pestaña Shop. ",
+  },
+  {
+    title: "3. Comunidad",
+    text:
+      "Diviertete compartiendo fotos y videos de tu mascota para interactuar con otros usuarios en la pestaña Social.",
+  },
+];
 
 export default function OnboardingAppOverview() {
   const insets = useSafeAreaInsets();
@@ -13,29 +38,14 @@ export default function OnboardingAppOverview() {
           Tres espacios para cuidar a tu mascota y conectarte con la comunidad.
         </Text>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>1. Ficha de la mascota</Text>
-          <Text style={styles.cardText}>
-            Lleva el historial y crea recordatorios para vacunas, desparasitación
-            y controles importantes.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>2. Catálogo y pedidos</Text>
-          <Text style={styles.cardText}>
-            Explora productos de tu veterinaria y realiza pedidos
-            desde la pestaña Shop.
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>3. Comunidad</Text>
-          <Text style={styles.cardText}>
-            Diviertete compartiendo fotos y videos de tu mascota para interactuar con otros
-            usuarios en la pestaña Social.
-          </Text>
-        </View>
+        {OVERVIEW_ITEMS.map((item, index) => (
+          <OverviewAnimatedCard
+            key={item.title}
+            title={item.title}
+            text={item.text}
+            index={index}
+          />
+        ))}
       </View>
 
       <View style={styles.actions}>
@@ -50,6 +60,42 @@ export default function OnboardingAppOverview() {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+function OverviewAnimatedCard({
+  title,
+  text,
+  index,
+}: {
+  title: string;
+  text: string;
+  index: number;
+}) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(12);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      index * 600,
+      withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) })
+    );
+    translateY.value = withDelay(
+      index * 600,
+      withTiming(0, { duration: 1500, easing: Easing.out(Easing.cubic) })
+    );
+  }, [index, opacity, translateY]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.card, animatedStyle]}>
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.cardText}>{text}</Text>
+    </Animated.View>
   );
 }
 
