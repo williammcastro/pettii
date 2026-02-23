@@ -20,7 +20,7 @@ export default function OnboardingPetPreference() {
   const handleNext = async () => {
     if (!selected) return;
     await AsyncStorage.setItem("onboarding_pet_preference", selected);
-    router.push("/onboarding/clinic-code");
+    router.push("/onboarding/app-overview");
   };
 
   return (

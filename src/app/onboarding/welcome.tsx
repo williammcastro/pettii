@@ -17,7 +17,7 @@ export default function OnboardingWelcome() {
         <Text style={styles.title}>Bienvenido a Pettii</Text>
 
         <ImageBackground
-          source={require("../../../assets/images/carpet_lq.png")}
+          source={require("../../../assets/images/carpetlq.png")}
           style={styles.carpetBackground}
         />
 
@@ -29,7 +29,7 @@ export default function OnboardingWelcome() {
         />
       </View>
         <Text style={styles.subtitle}>
-          Tu app para el cuidado de mascotas, veterinarias y una comunidad
+          Tu app para el cuidado de mascotas, veterinarias y diversion en una comunidad
           pensada para ti.
         </Text>
 
@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
   },
   carpetBackground: {
     position: "absolute",
-    width: 350,
-    height: 350,
+    width: 380,
+    height: 300,
     bottom: 50,
     zIndex: 0,
   },
