@@ -48,32 +48,41 @@ export default function OnboardingPetPreference() {
         </View>
       </View>
 
-      { selected === "dog" && (
+      <View style={styles.animationStack}>
+        { selected === "dog" && (
+          <LottieView
+          source={require("../../../assets/lottie/walking_dog.json")}
+          autoPlay
+          loop
+          style={styles.lottie}
+          />
+        )}
+        { selected === "cat" && (
+          <LottieView
+          source={require("../../../assets/lottie/bad_cat_mug.json")}
+          autoPlay
+          loop={false}
+          speed={0.5}
+          style={styles.lottie}
+          />
+        )}
+        { selected === "other" && (
+          <LottieView
+          source={require("../../../assets/lottie/cat_in_box.json")}
+          autoPlay
+          loop={false}
+          speed={0.5}
+          style={styles.lottie}
+          />
+        )}
+
         <LottieView
-        source={require("../../../assets/lottie/walking_dog.json")}
-        autoPlay
-        loop
-        style={styles.lottie}
-        />
-      )}
-      { selected === "cat" && (
-        <LottieView
-        source={require("../../../assets/lottie/bad_cat_mug.json")}
-        autoPlay
-        loop={false}
-        speed={0.5}
-        style={styles.lottie}
-        />
-      )}
-      { selected === "other" && (
-        <LottieView
-        source={require("../../../assets/lottie/cat_in_box.json")}
-        autoPlay
-        loop={false}
-        speed={0.5}
-        style={styles.lottie}
-        />
-      )}
+          source={require("../../../assets/lottie/reward_light.json")}
+          autoPlay
+          loop
+          style={styles.lottieOverlay}
+          />
+      </View>
 
       <View style={styles.actions}>
         <Pressable style={styles.secondaryButton} onPress={() => router.back()}>
@@ -129,6 +138,23 @@ const styles = StyleSheet.create({
     width: 350,
     height: 350,
     marginBottom: 8,
+    zIndex: 10,
+  },
+  lottieOverlay: {
+    position: "absolute",
+    width: 350,
+    height: 350,
+    bottom: 10,
+    alignSelf: "center",
+    zIndex: 0,
+  },
+  animationStack: {
+    width: 350,
+    height: 350,
+    alignSelf: "center",
+    marginBottom: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   primaryButton: {
     flex: 1,

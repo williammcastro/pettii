@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useState } from "react";
 import {
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -46,6 +47,10 @@ export default function OnboardingClinicCode() {
         </View>
 
         <View style={styles.animationStack}>
+          <ImageBackground
+            source={require("../../../assets/images/consult_lq.png")}
+            style={styles.stageBackground}
+          />
           <LottieView
             source={require("../../../assets/lottie/happy_dog.json")}
             autoPlay
@@ -120,22 +125,28 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   lottieHappyDog: {
-    width: 450,
-    height: 450,
-    marginBottom: 8,
+    width: 200,
+    height: 200,
+    marginBottom: 40,
   },
   animationStack: {
-    width: 350,
+    width: "100%",
     height: 350,
     alignSelf: "center",
-    marginBottom: 8,
+    // marginHorizontal: -24,
+    marginBottom: 0,
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 0,
+    // overflow: "hidden",
+    position: "relative",
+  },
+  stageBackground: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
   },
   confettiOverlay: {
-    position: "absolute",
-    width: 350,
-    height: 350,
+    ...StyleSheet.absoluteFillObject,
   },
   primaryButton: {
     flex: 1,
