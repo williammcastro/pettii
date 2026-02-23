@@ -1,15 +1,15 @@
+import { usePets } from "@/features/pets/hooks";
+import { useAuthStore } from "@/store/auth";
+import { usePetSelectionStore } from "@/store/pet-selection";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DrawerContentScrollView,
   type DrawerContentComponentProps,
 } from "@react-navigation/drawer";
-import { usePets } from "@/features/pets/hooks";
-import { useAuthStore } from "@/store/auth";
-import { usePetSelectionStore } from "@/store/pet-selection";
-import { useEffect, useMemo } from "react";
-import { router } from "expo-router";
 import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useEffect, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function PetDrawerContent(props: DrawerContentComponentProps) {
   const { user, loading, signOut } = useAuthStore();
@@ -84,19 +84,6 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
         }}
       >
         <Text style={styles.actionText}>Agregar mascota</Text>
-      </Pressable>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.sectionTitle}>Veterinaria</Text>
-      <Pressable
-        style={styles.actionButton}
-        onPress={() => {
-          props.navigation.closeDrawer();
-          router.push("/clinic/change");
-        }}
-      >
-        <Text style={styles.actionText}>Cambiar veterinaria</Text>
       </Pressable>
 
       <View style={styles.divider} />
