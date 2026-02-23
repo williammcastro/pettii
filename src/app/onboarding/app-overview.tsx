@@ -92,9 +92,11 @@ function OverviewAnimatedCard({
   }));
 
   return (
-    <Animated.View style={[styles.card, animatedStyle]}>
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardText}>{text}</Text>
+    <Animated.View style={[styles.cardShadow, animatedStyle]}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>{title}</Text>
+        <Text style={styles.cardText}>{text}</Text>
+      </View>
     </Animated.View>
   );
 }
@@ -120,13 +122,21 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 8,
   },
+  cardShadow: {
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  },
   card: {
-    backgroundColor: "#9f9cec",
+    backgroundColor: "#a8a5ef",
     borderRadius: 14,
     padding: 14,
     gap: 6,
     borderWidth: 4,
-    borderColor: "#706cf1",
+    borderColor: "#817df5",
   },
   cardTitle: {
     fontSize: 16,
@@ -135,7 +145,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontSize: 14,
-    color: "#eee",
+    color: "#fff",
     lineHeight: 20,
   },
   actions: {

@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import LottieView from "lottie-react-native";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Preference = "dog" | "cat" | "other";
@@ -33,38 +34,51 @@ export default function OnboardingPetPreference() {
 
         <View style={styles.cards}>
           {options.map((option) => (
-            <Pressable
-              key={option.id}
-              onPress={() => setSelected(option.id)}
-              style={[
-                styles.card,
-                selected === option.id && styles.cardSelected,
-              ]}
-            >
-              <Text style={styles.cardEmoji}>{option.emoji}</Text>
-              <Text style={styles.cardLabel}>{option.label}</Text>
-            </Pressable>
+            <View key={option.id} style={styles.cardShadow}>
+              <Pressable
+                onPress={() => setSelected(option.id)}
+                style={[
+                  styles.card,
+                  selected === option.id && styles.cardSelected,
+                ]}
+              >
+                <Text style={styles.cardEmoji}>{option.emoji}</Text>
+                <Text style={styles.cardLabel}>{option.label}</Text>
+              </Pressable>
+            </View>
           ))}
         </View>
       </View>
 
       <View style={styles.animationStack}>
-        { selected === "dog" && (
-          <LottieView
-          source={require("../../../assets/lottie/walking_dog.json")}
+
+        <LottieView
+          source={require("../../../assets/lottie/reward_light.json")}
           autoPlay
           loop
-          style={styles.lottie}
+          style={styles.lottieOverlay}
           />
+
+        { selected === "dog" && (
+          <Animated.View key="dog-fade" entering={FadeIn.duration(500)}>
+            <LottieView
+              source={require("../../../assets/lottie/walking_dog.json")}
+              autoPlay
+              loop
+              style={styles.lottie}
+            />
+          </Animated.View>
         )}
         { selected === "cat" && (
-          <LottieView
-          source={require("../../../assets/lottie/bad_cat_mug.json")}
-          autoPlay
-          loop={false}
-          speed={0.5}
-          style={styles.lottie}
-          />
+          <Animated.View key="cat-fade" entering={FadeIn.duration(600)}>
+            <LottieView
+              source={require("../../../assets/lottie/bad_cat_mug.json")}
+              autoPlay
+              loop={false}
+              speed={0.5}
+              style={styles.lottie}
+            />
+          </Animated.View>
         )}
         { selected === "other" && (
           <LottieView
@@ -76,12 +90,7 @@ export default function OnboardingPetPreference() {
           />
         )}
 
-        <LottieView
-          source={require("../../../assets/lottie/reward_light.json")}
-          autoPlay
-          loop
-          style={styles.lottieOverlay}
-          />
+
       </View>
 
       <View style={styles.actions}>
@@ -114,8 +123,17 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "700", color: "#111" },
   subtitle: { fontSize: 15, color: "#555" },
   cards: { flexDirection: "row", gap: 12, marginTop: 16 },
-  card: {
+  cardShadow: {
     flex: 1,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 12,
+  },
+  card: {
+    width: "100%",
     paddingVertical: 24,
     borderRadius: 16,
     backgroundColor: "#f3f3f3",
