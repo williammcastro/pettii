@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Pettii",
+    "name": "",
     "slug": "pettii",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./src/assets/images/icon-white.png",
+    "icon": "./src/assets/images/loading2.png",
     "scheme": "pettii",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
