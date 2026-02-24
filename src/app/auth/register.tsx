@@ -33,7 +33,7 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Crear cuenta en Pettii</Text>
+      <Text style={styles.title}>Crear cuenta</Text>
 
       <TextInput
         style={styles.input}

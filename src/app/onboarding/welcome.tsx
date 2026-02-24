@@ -14,7 +14,7 @@ export default function OnboardingWelcome() {
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 20) }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Bienvenido a Pettii</Text>
+        <Text style={styles.title}>Bienvenido</Text>
 
         <ImageBackground
           source={require("../../../assets/images/carpetlq.png")}
@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   content: {
-    marginTop: 20,
-    gap: 12,
+    marginTop: 10,
+    gap: 5,
     alignItems: "center",
   },
   lottie: {
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#555",
     textAlign: "center",
+    marginBottom:30,
   },
   carpetBackground: {
     position: "absolute",

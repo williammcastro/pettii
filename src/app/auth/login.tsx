@@ -46,7 +46,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar sesión en Pettii</Text>
+      <Text style={styles.title}>Iniciar sesión</Text>
 
       <TextInput
         style={styles.input}
