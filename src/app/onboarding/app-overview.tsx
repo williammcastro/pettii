@@ -170,12 +170,12 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   card: {
-    backgroundColor: "#a8a5ef",
+    backgroundColor: "#b5b3f2",
     borderRadius: 14,
     padding: 14,
     gap: 6,
     borderWidth: 4,
-    borderColor: "#817df5",
+    borderColor: "#a3a0f3",
   },
   cardTitle: {
     fontSize: 16,
