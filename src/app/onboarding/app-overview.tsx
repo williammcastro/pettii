@@ -2,10 +2,13 @@ import { router } from "expo-router";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
+  withRepeat,
+  withSequence,
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -81,6 +84,7 @@ function OverviewAnimatedCard({
 }) {
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(12);
+  const scale = useSharedValue(1);
 
   useEffect(() => {
     opacity.value = withDelay(
@@ -91,11 +95,39 @@ function OverviewAnimatedCard({
       index * 600,
       withTiming(0, { duration: 1500, easing: Easing.out(Easing.cubic) })
     );
-  }, [index, opacity, translateY]);
+
+    const pulseStartDelayMs = 500;
+    const pulseCycleMs = 4000;
+    const pulseOffsetMs = index * 300;
+    const pulseUpMs = 500;
+    const pulseDownMs = 500;
+    const pulseRestMs = Math.max(
+      0,
+      pulseCycleMs - pulseOffsetMs - pulseUpMs - pulseDownMs
+    );
+
+    scale.value = withDelay(
+      pulseStartDelayMs,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: pulseOffsetMs }),
+          withTiming(1.04, { duration: pulseUpMs, easing: Easing.out(Easing.quad) }),
+          withTiming(1, { duration: pulseDownMs, easing: Easing.in(Easing.quad) }),
+          withTiming(1, { duration: pulseRestMs })
+        ),
+        -1,
+        false
+      )
+    );
+
+    return () => {
+      cancelAnimation(scale);
+    };
+  }, [index, opacity, scale, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
+    transform: [{ translateY: translateY.value }, { scale: scale.value }],
   }));
 
   return (

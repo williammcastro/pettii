@@ -32,8 +32,8 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   logoWrap: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
     borderRadius: 70,
     overflow: "hidden",
     backgroundColor: "#f2f2f2",
