@@ -1,9 +1,11 @@
 import { supabase } from '@/lib/supabase';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function RegisterScreen() {
+  const params = useLocalSearchParams<{ next?: string }>();
+  const nextPath = typeof params.next === "string" ? params.next : "/";
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -20,7 +22,10 @@ export default function RegisterScreen() {
       }
 
       Alert.alert('Listo', 'Cuenta creada. Ahora inicia sesión.');
-      router.replace('/auth/login');
+      router.replace({
+        pathname: "/auth/login",
+        params: { next: nextPath },
+      });
     } catch (e: any) {
       Alert.alert('Error inesperado', e.message ?? 'Intenta de nuevo');
     }

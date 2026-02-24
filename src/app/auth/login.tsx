@@ -1,21 +1,21 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { joinClinicByCode } from "@/features/clinics/api";
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/auth';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
   const { user } = useAuthStore();
+  const params = useLocalSearchParams<{ next?: string }>();
+  const nextPath = typeof params.next === "string" ? params.next : "/";
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (user) {
-      router.replace('/');
+      router.replace(nextPath as any);
     }
-  }, [user]);
+  }, [nextPath, user]);
 
   const handleLogin = async () => {
     try {
@@ -27,26 +27,17 @@ export default function LoginScreen() {
         Alert.alert('Error', error.message);
         return;
       }
-
-      // Si el código se guardó durante onboarding sin sesión activa,
-      // lo vinculamos ahora tras iniciar sesión.
-      const pendingClinicCode = await AsyncStorage.getItem("onboarding_clinic_code");
-      if (pendingClinicCode?.trim()) {
-        try {
-          await joinClinicByCode(pendingClinicCode.trim().toUpperCase());
-        } catch {
-          // No bloqueamos login por fallo de vínculo; el usuario podrá reintentar onboarding.
-        }
-      }
-
-      router.replace('/'); // home (tabs/index)
+      router.replace(nextPath as any);
     } catch (e: any) {
       Alert.alert('Error inesperado', e.message ?? 'Intenta de nuevo');
     }
   };
 
   const goToRegister = () => {
-    router.push('/auth/register');
+    router.push({
+      pathname: "/auth/register",
+      params: { next: nextPath },
+    });
   };
 
   const goToRecover = () => {

@@ -54,7 +54,14 @@ export default function OnboardingAppOverview() {
         </Pressable>
         <Pressable
           style={styles.primaryButton}
-          onPress={() => router.push("/onboarding/clinic-code")}
+          onPress={() =>
+            router.push({
+              pathname: "/auth/login",
+              params: {
+                next: "/onboarding/clinic-code",
+              },
+            })
+          }
         >
           <Text style={styles.primaryText}>Continuar</Text>
         </Pressable>
