@@ -37,43 +37,64 @@ export default function RootLayout() {
     let active = true;
 
     const loadLaunchScreen = async () => {
-      let logoUrl: string | null = null;
+      if (!user?.id) {
+        await SplashScreen.hideAsync().catch(() => undefined);
+        if (!active) return;
+        setLaunchReady(true);
+        return;
+      }
 
-      try {
-        if (user?.id) {
-          const cachedLogoUrl = await getCachedClinicLogoUrl(user.id);
-          if (cachedLogoUrl) {
-            logoUrl = cachedLogoUrl;
-            await ExpoImage.prefetch(cachedLogoUrl).catch(() => undefined);
-            if (active) {
-              setLaunchLogoUrl(cachedLogoUrl);
-              setShowDynamicLaunch(true);
-            }
-          }
-
-          const clinic = await fetchPrimaryClinicForUser(user.id).catch(() => null);
-          const latestLogoUrl = clinic?.logo_signed_url ?? clinic?.logo_url ?? null;
-
-          if (latestLogoUrl) {
-            await setCachedClinicLogoUrl(user.id, latestLogoUrl);
-            logoUrl = latestLogoUrl;
-            await ExpoImage.prefetch(latestLogoUrl).catch(() => undefined);
-            if (active) {
-              setLaunchLogoUrl(latestLogoUrl);
-              setShowDynamicLaunch(true);
-            }
-          } else {
-            await clearCachedClinicLogoUrl(user.id);
-          }
+      const cachedLogoUrl = await getCachedClinicLogoUrl(user.id);
+      if (cachedLogoUrl) {
+        await ExpoImage.prefetch(cachedLogoUrl).catch(() => undefined);
+        if (active) {
+          setLaunchLogoUrl(cachedLogoUrl);
+          setShowDynamicLaunch(true);
         }
-      } finally {
+
         await SplashScreen.hideAsync().catch(() => undefined);
         if (!active) return;
 
         setTimeout(() => {
           if (active) setLaunchReady(true);
-        }, logoUrl ? 700 : 0);
+        }, 450);
+
+        // Refrescamos en background para próximas aperturas sin bloquear arranque.
+        void (async () => {
+          const clinic = await fetchPrimaryClinicForUser(user.id).catch(() => null);
+          const latestLogoUrl = clinic?.logo_signed_url ?? clinic?.logo_url ?? null;
+          if (!active) return;
+          if (latestLogoUrl) {
+            await setCachedClinicLogoUrl(user.id, latestLogoUrl);
+            setLaunchLogoUrl(latestLogoUrl);
+          } else {
+            await clearCachedClinicLogoUrl(user.id);
+          }
+        })();
+        return;
       }
+
+      // Sin caché: resolvemos logo remoto antes de mostrar app.
+      const clinic = await fetchPrimaryClinicForUser(user.id).catch(() => null);
+      const latestLogoUrl = clinic?.logo_signed_url ?? clinic?.logo_url ?? null;
+
+      if (latestLogoUrl) {
+        await setCachedClinicLogoUrl(user.id, latestLogoUrl);
+        await ExpoImage.prefetch(latestLogoUrl).catch(() => undefined);
+        if (active) {
+          setLaunchLogoUrl(latestLogoUrl);
+          setShowDynamicLaunch(true);
+        }
+      } else {
+        await clearCachedClinicLogoUrl(user.id);
+      }
+
+      await SplashScreen.hideAsync().catch(() => undefined);
+      if (!active) return;
+
+      setTimeout(() => {
+        if (active) setLaunchReady(true);
+      }, latestLogoUrl ? 450 : 0);
     };
 
     void loadLaunchScreen();
