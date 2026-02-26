@@ -1,11 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { requestTrackingPermissionsAsync } from "expo-tracking-transparency";
 import LottieView from "lottie-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   Linking,
-  Platform,
   Pressable,
   StyleSheet,
   Switch,
@@ -29,9 +27,6 @@ export default function OnboardingTerms() {
   const handleToggle = async (value: boolean) => {
     setAccepted(value);
     await AsyncStorage.setItem("onboarding_terms_accepted", value ? "true" : "false");
-    if (value && Platform.OS === "ios") {
-      await requestTrackingPermissionsAsync();
-    }
   };
 
   return (

@@ -47,7 +47,6 @@
         }
       ],
       "expo-video",
-      "expo-tracking-transparency",
       "expo-font"
     ],
     "experiments": {
