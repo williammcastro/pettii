@@ -296,7 +296,8 @@ function PetHeader({
     petId
   );
 
-  const showActions = !!followerPetId && followerPetId !== petId;
+  const isDeletedProfile = !!pet?.is_profile_deleted;
+  const showActions = !!followerPetId && followerPetId !== petId && !isDeletedProfile;
 
   return (
     <View
@@ -311,7 +312,13 @@ function PetHeader({
       }}
     >
       <Pressable
-        onPress={() => router.push(`/pet/${petId}`)}
+        onPress={() => {
+          if (isDeletedProfile) {
+            Alert.alert("Cuenta eliminada", "Esta cuenta fue eliminada.");
+            return;
+          }
+          router.push(`/pet/${petId}`);
+        }}
         style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
       >
         {pet?.avatar_signed_url ||
@@ -349,7 +356,9 @@ function PetHeader({
             </Text>
           </View>
         )}
-        <Text style={{ fontWeight: "600" }}>{pet?.name ?? "Mascota"}</Text>
+        <Text style={{ fontWeight: "600" }}>
+          {isDeletedProfile ? "Cuenta eliminada" : pet?.name ?? "Mascota"}
+        </Text>
       </Pressable>
       {showActions && !isLoading && (
         <Pressable
@@ -429,13 +438,20 @@ function RecommendedHeader({
 
 function PetMini({ petId }: { petId: string }) {
   const { data: pet } = usePetById(petId);
+  const isDeletedProfile = !!pet?.is_profile_deleted;
   const avatarUrl =
     pet?.avatar_signed_url ??
     (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null);
 
   return (
     <Pressable
-      onPress={() => router.push(`/pet/${petId}`)}
+      onPress={() => {
+        if (isDeletedProfile) {
+          Alert.alert("Cuenta eliminada", "Esta cuenta fue eliminada.");
+          return;
+        }
+        router.push(`/pet/${petId}`);
+      }}
       style={{ alignItems: "center", maxWidth: 64 }}
     >
       {avatarUrl ? (
@@ -470,7 +486,7 @@ function PetMini({ petId }: { petId: string }) {
         style={{ fontSize: 11, marginTop: 4, color: "#111" }}
         numberOfLines={1}
       >
-        {pet?.name ?? "Mascota"}
+        {isDeletedProfile ? "Eliminada" : pet?.name ?? "Mascota"}
       </Text>
     </Pressable>
   );
@@ -618,7 +634,9 @@ function CommentsModal({
 }: CommentsModalProps) {
   const { data: comments, isLoading } = usePostComments(postId ?? undefined);
   const commentUserIds = useMemo(() => {
-    const ids = (comments ?? []).map((comment) => comment.user_id);
+    const ids = (comments ?? [])
+      .map((comment) => comment.user_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
     return Array.from(new Set(ids));
   }, [comments]);
   const { data: profiles } = useProfilesByIds(commentUserIds);
@@ -686,13 +704,23 @@ function CommentsModal({
             contentContainerStyle={{ gap: 10, paddingBottom: 12 }}
             renderItem={({ item }) => (
               <View>
-                <Text style={{ fontWeight: "600", color: "#111" }}>
-                  {item.user_id === userId
-                    ? "Tú"
-                    : profileById.get(item.user_id)?.full_name ||
-                      profileById.get(item.user_id)?.email ||
-                      "Usuario"}
-                </Text>
+                {(() => {
+                  const authorId =
+                    typeof item.user_id === "string" ? item.user_id : null;
+                  const authorName =
+                    !authorId
+                      ? "Cuenta eliminada"
+                      : authorId === userId
+                        ? "Tú"
+                        : profileById.get(authorId)?.full_name ||
+                          profileById.get(authorId)?.email ||
+                          "Usuario";
+                  return (
+                    <Text style={{ fontWeight: "600", color: "#111" }}>
+                      {authorName}
+                    </Text>
+                  );
+                })()}
                 <Text style={{ color: "#333" }}>{item.body}</Text>
               </View>
             )}

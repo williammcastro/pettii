@@ -1,12 +1,14 @@
 export type Pet = {
   id: string;
-  primary_owner_id: string;
+  primary_owner_id?: string | null;
   name: string;
   species?: string | null;
   breed?: string | null;
   birthdate?: string | null;
   avatar_url?: string | null;
   avatar_signed_url?: string | null;
+  is_profile_deleted?: boolean | null;
+  deleted_at?: string | null;
   status?: string | null;
   sex?: string | null;
   weight_kg?: number | null;

@@ -1,3 +1,5 @@
+import { useDeleteMyAccount } from "@/features/auth/hooks";
+import { clearCachedClinicLogoUrl } from "@/lib/clinic-branding-cache";
 import { usePets } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
@@ -9,15 +11,94 @@ import {
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 export function PetDrawerContent(props: DrawerContentComponentProps) {
   const { user, loading, signOut } = useAuthStore();
   const { selectedPetId, setSelectedPetId, setSelectedPetName } =
     usePetSelectionStore();
+  const deleteAccountMutation = useDeleteMyAccount();
   const userId = user?.id;
   const { data: pets, isLoading } = usePets(userId, !loading);
   const safePets = useMemo(() => pets ?? [], [pets]);
+
+  const clearLocalUserState = async () => {
+    if (userId) {
+      await clearCachedClinicLogoUrl(userId);
+    }
+    await AsyncStorage.multiRemove([
+      "onboarding_completed",
+      "onboarding_started",
+      "onboarding_terms_accepted",
+      "onboarding_pet_preference",
+      "onboarding_clinic_code",
+      "onboarding_referral_source",
+      "home_confetti_shown",
+      "upload_warning_shown",
+    ]);
+    setSelectedPetId(null);
+    setSelectedPetName(null);
+  };
+
+  const handleSignOut = async () => {
+    await clearLocalUserState();
+    await signOut();
+  };
+
+  const handleDeleteAccount = () => {
+    if (!userId || deleteAccountMutation.isPending) return;
+
+    Alert.alert(
+      "Eliminar cuenta",
+      "Tu cuenta se eliminara de forma permanente. Tu contenido publico quedara anonimo.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Continuar",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Confirmacion final",
+              "Esta accion no se puede deshacer. Deseas eliminar tu cuenta ahora?",
+              [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: "Eliminar definitivamente",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      await deleteAccountMutation.mutateAsync({
+                        reason: "user_requested_from_app",
+                      });
+                      await clearLocalUserState();
+                      Alert.alert(
+                        "Cuenta eliminada",
+                        "Tu cuenta fue eliminada correctamente.",
+                        [
+                          {
+                            text: "OK",
+                            onPress: async () => {
+                              await signOut();
+                              router.replace("/onboarding/welcome");
+                            },
+                          },
+                        ]
+                      );
+                    } catch (error: any) {
+                      Alert.alert(
+                        "No se pudo eliminar la cuenta",
+                        error?.message ?? "Intenta de nuevo."
+                      );
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
 
   useEffect(() => {
     if (!loading && safePets.length > 0 && !selectedPetId) {
@@ -90,19 +171,20 @@ export function PetDrawerContent(props: DrawerContentComponentProps) {
 
       <Pressable
         style={[styles.actionButton, styles.signOutButton]}
-        onPress={async () => {
-          await AsyncStorage.multiRemove([
-            "onboarding_completed",
-            "onboarding_started",
-            "onboarding_terms_accepted",
-            "onboarding_pet_preference",
-            "onboarding_clinic_code",
-            "onboarding_referral_source",
-          ]);
-          signOut();
-        }}
+        onPress={handleSignOut}
+        disabled={deleteAccountMutation.isPending}
       >
         <Text style={styles.actionText}>Cerrar sesión</Text>
+      </Pressable>
+
+      <Pressable
+        style={[styles.actionButton, styles.deleteAccountButton]}
+        onPress={handleDeleteAccount}
+        disabled={deleteAccountMutation.isPending}
+      >
+        <Text style={styles.actionText}>
+          {deleteAccountMutation.isPending ? "Eliminando cuenta..." : "Eliminar cuenta"}
+        </Text>
       </Pressable>
     </DrawerContentScrollView>
   );
@@ -172,6 +254,9 @@ const styles = StyleSheet.create({
   },
   signOutButton: {
     backgroundColor: "#ffe7e7",
+  },
+  deleteAccountButton: {
+    backgroundColor: "#ffd7d7",
   },
   actionText: {
     fontSize: 16,
