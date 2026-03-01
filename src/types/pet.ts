@@ -7,8 +7,6 @@ export type Pet = {
   birthdate?: string | null;
   avatar_url?: string | null;
   avatar_signed_url?: string | null;
-  is_profile_deleted?: boolean | null;
-  deleted_at?: string | null;
   status?: string | null;
   sex?: string | null;
   weight_kg?: number | null;

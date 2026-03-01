@@ -296,8 +296,7 @@ function PetHeader({
     petId
   );
 
-  const isDeletedProfile = !!pet?.is_profile_deleted;
-  const showActions = !!followerPetId && followerPetId !== petId && !isDeletedProfile;
+  const showActions = !!followerPetId && followerPetId !== petId;
 
   return (
     <View
@@ -312,13 +311,7 @@ function PetHeader({
       }}
     >
       <Pressable
-        onPress={() => {
-          if (isDeletedProfile) {
-            Alert.alert("Cuenta eliminada", "Esta cuenta fue eliminada.");
-            return;
-          }
-          router.push(`/pet/${petId}`);
-        }}
+        onPress={() => router.push(`/pet/${petId}`)}
         style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
       >
         {pet?.avatar_signed_url ||
@@ -356,9 +349,7 @@ function PetHeader({
             </Text>
           </View>
         )}
-        <Text style={{ fontWeight: "600" }}>
-          {isDeletedProfile ? "Cuenta eliminada" : pet?.name ?? "Mascota"}
-        </Text>
+        <Text style={{ fontWeight: "600" }}>{pet?.name ?? "Mascota"}</Text>
       </Pressable>
       {showActions && !isLoading && (
         <Pressable
@@ -438,20 +429,13 @@ function RecommendedHeader({
 
 function PetMini({ petId }: { petId: string }) {
   const { data: pet } = usePetById(petId);
-  const isDeletedProfile = !!pet?.is_profile_deleted;
   const avatarUrl =
     pet?.avatar_signed_url ??
     (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null);
 
   return (
     <Pressable
-      onPress={() => {
-        if (isDeletedProfile) {
-          Alert.alert("Cuenta eliminada", "Esta cuenta fue eliminada.");
-          return;
-        }
-        router.push(`/pet/${petId}`);
-      }}
+      onPress={() => router.push(`/pet/${petId}`)}
       style={{ alignItems: "center", maxWidth: 64 }}
     >
       {avatarUrl ? (
@@ -486,7 +470,7 @@ function PetMini({ petId }: { petId: string }) {
         style={{ fontSize: 11, marginTop: 4, color: "#111" }}
         numberOfLines={1}
       >
-        {isDeletedProfile ? "Eliminada" : pet?.name ?? "Mascota"}
+        {pet?.name ?? "Mascota"}
       </Text>
     </Pressable>
   );
@@ -709,7 +693,7 @@ function CommentsModal({
                     typeof item.user_id === "string" ? item.user_id : null;
                   const authorName =
                     !authorId
-                      ? "Cuenta eliminada"
+                      ? "Usuario"
                       : authorId === userId
                         ? "Tú"
                         : profileById.get(authorId)?.full_name ||

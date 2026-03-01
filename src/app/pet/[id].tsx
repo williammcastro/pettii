@@ -16,7 +16,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import {
-  Alert,
   ActivityIndicator,
   FlatList,
   Modal,
@@ -56,7 +55,6 @@ export default function PetProfileScreen() {
       (pet.avatar_url?.startsWith("http") ? pet.avatar_url : null)
     );
   }, [pet]);
-  const isDeletedProfile = !!pet?.is_profile_deleted;
   const recommendedPetIds = useMemo(() => {
     const ids = (feedPosts ?? [])
       .map((post) => post.pet_id)
@@ -97,7 +95,7 @@ export default function PetProfileScreen() {
     );
   }
 
-  const showFollow = !!selectedPetId && selectedPetId !== petId && !isDeletedProfile;
+  const showFollow = !!selectedPetId && selectedPetId !== petId;
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 20) }]}>
@@ -123,12 +121,8 @@ export default function PetProfileScreen() {
           </View>
         )}
         <View style={styles.profileInfo}>
-          <Text style={styles.nameText}>
-            {isDeletedProfile ? "Cuenta eliminada" : pet?.name ?? "Mascota"}
-          </Text>
-          <Text style={styles.statusText}>
-            {isDeletedProfile ? "Perfil no disponible" : pet?.status ?? "Sin estado"}
-          </Text>
+          <Text style={styles.nameText}>{pet?.name ?? "Mascota"}</Text>
+          <Text style={styles.statusText}>{pet?.status ?? "Sin estado"}</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats?.posts ?? 0}</Text>
@@ -279,20 +273,13 @@ function MediaModal({
 
 function PetMini({ petId }: { petId: string }) {
   const { data: pet } = usePetById(petId);
-  const isDeletedProfile = !!pet?.is_profile_deleted;
   const avatarUrl =
     pet?.avatar_signed_url ??
     (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null);
 
   return (
     <Pressable
-      onPress={() => {
-        if (isDeletedProfile) {
-          Alert.alert("Cuenta eliminada", "Esta cuenta fue eliminada.");
-          return;
-        }
-        router.push(`/pet/${petId}`);
-      }}
+      onPress={() => router.push(`/pet/${petId}`)}
       style={{ alignItems: "center", maxWidth: 64 }}
     >
       {avatarUrl ? (
@@ -327,7 +314,7 @@ function PetMini({ petId }: { petId: string }) {
         style={{ fontSize: 11, marginTop: 4, color: "#111" }}
         numberOfLines={1}
       >
-        {isDeletedProfile ? "Eliminada" : pet?.name ?? "Mascota"}
+        {pet?.name ?? "Mascota"}
       </Text>
     </Pressable>
   );
