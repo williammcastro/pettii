@@ -1,5 +1,10 @@
 import { usePets, usePetStats } from "@/features/pets/hooks";
-import { useCreatePetPost, useDeletePetPost, usePetPosts } from "@/features/posts/hooks";
+import {
+  useCreatePetPost,
+  useDeletePetPost,
+  useMyMediaQuota,
+  usePetPosts,
+} from "@/features/posts/hooks";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/store/auth";
 import { usePetSelectionStore } from "@/store/pet-selection";
@@ -27,6 +32,13 @@ import {
 
 const HOME_CONFETTI_SHOWN_KEY = "home_confetti_shown_after_onboarding_v1";
 
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
 export default function HomeScreen() {
   const { user, loading } = useAuthStore();
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -40,6 +52,7 @@ export default function HomeScreen() {
   const { mutateAsync, isPending } = useCreatePetPost();
   const { mutateAsync: deletePostAsync, isPending: isDeleting } =
     useDeletePetPost();
+  const { data: mediaQuota } = useMyMediaQuota(!!userId);
   const colorScheme = useColorScheme();
   const [isPickingMedia, setIsPickingMedia] = useState(false);
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
@@ -136,7 +149,7 @@ export default function HomeScreen() {
         mediaTypes: ["images", "videos"],
         allowsEditing: false,
         quality: 0.9,
-        videoExportPreset: ImagePicker.VideoExportPreset.H264_960x540,
+        videoExportPreset: ImagePicker.VideoExportPreset.H264_640x480,
       });
 
       if (result.canceled) return;
@@ -148,10 +161,10 @@ export default function HomeScreen() {
       if (mediaType === "video" && asset.duration) {
         const durationMs =
           asset.duration <= 120 ? asset.duration * 1000 : asset.duration;
-        if (durationMs > 60_000) {
+        if (durationMs > 45_000) {
           Alert.alert(
             "Video muy largo",
-            "El video debe durar máximo 1 minuto."
+            "El video debe durar máximo 45 segundos."
           );
           return;
         }
@@ -194,6 +207,26 @@ export default function HomeScreen() {
         }
       }
 
+      let finalSize = fileSize;
+      if (finalSize == null || uploadUri !== asset.uri) {
+        const info = await FileSystem.getInfoAsync(uploadUri);
+        finalSize = info.exists ? info.size ?? null : null;
+      }
+
+      if (
+        finalSize != null &&
+        mediaQuota?.remaining_bytes != null &&
+        finalSize > mediaQuota.remaining_bytes
+      ) {
+        Alert.alert(
+          "Cuota de almacenamiento excedida",
+          `Te quedan ${formatBytes(mediaQuota.remaining_bytes)} de ${formatBytes(
+            mediaQuota.bytes_limit
+          )}. Borra contenido para continuar.`
+        );
+        return;
+      }
+
       try {
         await mutateAsync({
           owner_user_id: userId,
@@ -208,9 +241,16 @@ export default function HomeScreen() {
           message.toLowerCase().includes("too large") ||
           message.toLowerCase().includes("payload") ||
           message.toLowerCase().includes("exceed");
+        const isQuotaExceeded =
+          message.toLowerCase().includes("media_quota_exceeded") ||
+          message.toLowerCase().includes("quota");
         Alert.alert(
           "Error al subir",
-          isTooLarge
+          isQuotaExceeded
+            ? `Llegaste al limite de ${formatBytes(
+                mediaQuota?.bytes_limit ?? 524288000
+              )}. Borra fotos o videos para seguir subiendo.`
+            : isTooLarge
             ? "El archivo supera 100MB. Intenta con un video más liviano."
             : message
         );
@@ -346,6 +386,12 @@ export default function HomeScreen() {
           </Text>
         </Pressable>
       </View>
+      {mediaQuota && (
+        <Text style={styles.quotaText}>
+          Uso de media: {formatBytes(mediaQuota.bytes_used)} /{" "}
+          {formatBytes(mediaQuota.bytes_limit)} ({mediaQuota.usage_percent}%)
+        </Text>
+      )}
 
       {isPostsLoading && <ActivityIndicator />}
 
@@ -510,6 +556,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 12,
+  },
+  quotaText: {
+    color: "#666",
+    fontSize: 12,
+    marginBottom: 8,
   },
   galleryTitle: { fontSize: 18, fontWeight: "600" },
   uploadButton: {

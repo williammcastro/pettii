@@ -152,9 +152,31 @@ export async function createPostWithMedia(input: {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    // Cleanup best-effort: if DB insert fails (e.g., quota), avoid orphaned file.
+    await supabase.storage.from(bucket).remove([storagePath]).catch(() => undefined);
+    throw error;
+  }
 
   return data;
+}
+
+export async function fetchMyMediaQuota(): Promise<{
+  bytes_used: number;
+  bytes_limit: number;
+  remaining_bytes: number;
+  usage_percent: number;
+}> {
+  const { data, error } = await supabase.rpc("get_my_media_quota");
+  if (error) throw error;
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    bytes_used: Number(row?.bytes_used ?? 0),
+    bytes_limit: Number(row?.bytes_limit ?? 524288000),
+    remaining_bytes: Number(row?.remaining_bytes ?? 524288000),
+    usage_percent: Number(row?.usage_percent ?? 0),
+  };
 }
 
 export async function deletePostWithMedia(input: {

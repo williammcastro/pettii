@@ -1,10 +1,11 @@
 export type Post = {
   id: string;
-  owner_user_id: string;
+  owner_user_id?: string | null;
   pet_id: string;
   media_type: "image" | "video";
   storage_bucket: string;
   storage_path: string;
+  media_size_bytes?: number;
   visibility: "public" | "private";
   moderation_status?: "pending" | "approved" | "rejected";
   moderation_reason?: string | null;

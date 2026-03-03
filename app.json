@@ -7,13 +7,14 @@
     "icon": "./src/assets/images/icon-white.png",
     "scheme": "pettii",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "buildNumber": "2",
       "bundleIdentifier": "com.pettii.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Pettii needs access to your photo library so you can select photos and videos of your pet to upload to your pet’s profile and share them in the community feed. For example, you can choose a photo or video from your gallery and publish it as a post.",
+        "NSPhotoLibraryAddUsageDescription": "Pettii may need permission to save photos or videos to your photo library when media is edited or prepared for sharing. For example, a pet photo edited in the app may be saved to your gallery before being posted."      
       }
     },
     "android": {
@@ -25,7 +26,6 @@
         "backgroundImage": "./src/assets/images/android-icon-background.png",
         "monochromeImage": "./src/assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
