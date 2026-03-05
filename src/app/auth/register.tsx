@@ -21,7 +21,7 @@ export default function RegisterScreen() {
         return;
       }
 
-      Alert.alert('Listo', 'Cuenta creada. Ahora inicia sesión.');
+      Alert.alert('Listo', 'Cuenta creada. Ahora por favor revisa tu email y confirma tu cuenta antes de iniciar sesión.  Si no ves el email, revisa tu carpeta de spam.');
       router.replace({
         pathname: "/auth/login",
         params: { next: nextPath },
