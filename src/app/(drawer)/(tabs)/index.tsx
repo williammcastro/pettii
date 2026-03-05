@@ -15,9 +15,9 @@ import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import LottieView from "lottie-react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
-import LottieView from "lottie-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -161,10 +161,10 @@ export default function HomeScreen() {
       if (mediaType === "video" && asset.duration) {
         const durationMs =
           asset.duration <= 120 ? asset.duration * 1000 : asset.duration;
-        if (durationMs > 60_000) {
+        if (durationMs > 45_000) {
           Alert.alert(
             "Video muy largo",
-            "El video debe durar máximo 1 minuto."
+            "El video debe durar máximo 45 segundos."
           );
           return;
         }
