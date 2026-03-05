@@ -10,9 +10,9 @@ import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import LottieView from "lottie-react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as VideoThumbnails from "expo-video-thumbnails";
+import LottieView from "lottie-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -118,7 +118,7 @@ export default function HomeScreen() {
         const proceed = await new Promise<boolean>((resolve) => {
           Alert.alert(
             "Contenido responsable",
-            "La idea de la comunidad es subir contenido inspirador y divertido. El contenido violento o de maltrato puede causar bloqueo de tu cuenta.",
+            "1. Ten cuidado por que al subir contenido, aceptas que este sea visible para toda la comunidad.\n2. Esta comunidad es para subir contenido inspirador y divertido.\n3. El contenido violento o de maltrato causarán la suspensión de tu cuenta.\n4. Puedes subir fotos de menos de 5 MB o videos de menos de 1 minuto o 100MB.\n5. Si tu video es muy pesado, intenta reducir su calidad o duración para subirlo exitosamente.\n\n¿Estás de acuerdo?",
             [
               { text: "Cancelar", style: "cancel", onPress: () => resolve(false) },
               { text: "Entendido", style: "default", onPress: () => resolve(true) },
