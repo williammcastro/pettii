@@ -1,6 +1,11 @@
 // src/app/pet/[id].tsx este es el perfil de la mascota cuando se carga por id desde los recomendados o busqueda
 import { usePetById, usePetStats } from "@/features/pets/hooks";
 import {
+  useBlockStatus,
+  useBlockUser,
+  useUnblockUser,
+} from "@/features/blocks/hooks";
+import {
   useFollowPet,
   useFollowStatus,
   usePetPosts,
@@ -16,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import {
+  Alert,
   ActivityIndicator,
   FlatList,
   Modal,
@@ -35,6 +41,7 @@ export default function PetProfileScreen() {
   const selectedPetId = usePetSelectionStore((s) => s.selectedPetId);
   const selectedPetName = usePetSelectionStore((s) => s.selectedPetName);
   const { data: pet, isLoading: isPetLoading } = usePetById(petId || undefined);
+  const targetUserId = pet?.primary_owner_id ?? undefined;
   const { data: stats } = usePetStats(petId || undefined);
   const { data: posts, isLoading: isPostsLoading } = usePetPosts(
     petId || undefined
@@ -44,6 +51,9 @@ export default function PetProfileScreen() {
     selectedPetId ?? undefined,
     petId || undefined
   );
+  const { data: isBlocked = false } = useBlockStatus(user?.id, targetUserId);
+  const blockMutation = useBlockUser();
+  const unblockMutation = useUnblockUser();
   const [activePost, setActivePost] = useState<PostWithMedia | null>(null);
   const followMutation = useFollowPet();
   const unfollowMutation = useUnfollowPet();
@@ -96,6 +106,44 @@ export default function PetProfileScreen() {
   }
 
   const showFollow = !!selectedPetId && selectedPetId !== petId;
+  const canBlock = !!targetUserId && !!user?.id && targetUserId !== user.id;
+
+  const handleBlockToggle = () => {
+    if (!canBlock || !targetUserId || !user?.id) return;
+    if (isBlocked) {
+      Alert.alert("Desbloquear usuario", "Volveras a ver su contenido.", [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Desbloquear",
+          onPress: async () => {
+            await unblockMutation.mutateAsync({
+              blocker_user_id: user.id,
+              blocked_user_id: targetUserId,
+            });
+          },
+        },
+      ]);
+      return;
+    }
+
+    Alert.alert(
+      "Bloquear usuario",
+      "No veras su contenido y no podra comentarte.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Bloquear",
+          style: "destructive",
+          onPress: async () => {
+            await blockMutation.mutateAsync({
+              blocker_user_id: user.id,
+              blocked_user_id: targetUserId,
+            });
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(insets.top, 20) }]}>
@@ -141,25 +189,38 @@ export default function PetProfileScreen() {
       </View>
 
       {showFollow && (
-        <Pressable
-          onPress={() => {
-            if (isFollowing) {
-              return unfollowMutation.mutateAsync({
+        <View style={styles.actionsRow}>
+          <Pressable
+            onPress={() => {
+              if (isFollowing) {
+                return unfollowMutation.mutateAsync({
+                  follower_pet_id: selectedPetId!,
+                  followed_pet_id: petId,
+                });
+              }
+              return followMutation.mutateAsync({
                 follower_pet_id: selectedPetId!,
                 followed_pet_id: petId,
               });
-            }
-            return followMutation.mutateAsync({
-              follower_pet_id: selectedPetId!,
-              followed_pet_id: petId,
-            });
-          }}
-          style={styles.followButton}
-        >
-          <Text style={styles.followText}>
-            {isFollowing ? "Siguiendo" : "Seguir"}
-          </Text>
-        </Pressable>
+            }}
+            style={styles.followButton}
+          >
+            <Text style={styles.followText}>
+              {isFollowing ? "Siguiendo" : "Seguir"}
+            </Text>
+          </Pressable>
+          {canBlock && (
+            <Pressable
+              onPress={handleBlockToggle}
+              disabled={blockMutation.isPending || unblockMutation.isPending}
+              style={styles.blockButton}
+            >
+              <Text style={styles.blockText}>
+                {isBlocked ? "Desbloquear" : "Bloquear"}
+              </Text>
+            </Pressable>
+          )}
+        </View>
       )}
 
       {recommendedPetIds.length > 0 && (
@@ -349,9 +410,21 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, color: "#666" },
   followButton: {
     alignSelf: "flex-start",
-    marginBottom: 12,
   },
   followText: { fontWeight: "700", color: "#0a7ea4" },
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 12,
+  },
+  blockButton: {
+    alignSelf: "flex-start",
+  },
+  blockText: {
+    color: "#b42318",
+    fontWeight: "700",
+  },
   recommendedSection: { marginBottom: 12 },
   recommendedTitle: { fontSize: 14, fontWeight: "600", marginBottom: 8 },
   recommendedRow: { gap: 12, paddingRight: 10 },

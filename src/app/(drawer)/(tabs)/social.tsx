@@ -1,6 +1,11 @@
 // src/app/(tabs)/index.tsx
 import { usePetById } from "@/features/pets/hooks";
 import {
+  useBlockStatus,
+  useBlockUser,
+  useUnblockUser,
+} from "@/features/blocks/hooks";
+import {
   useCreatePostComment,
   useCreatePostReport,
   useFollowPet,
@@ -183,6 +188,7 @@ export default function SocialScreen() {
             <PostActions
               postId={item.id}
               userId={user.id}
+              ownerUserId={item.owner_user_id ?? null}
               onOpenComments={() => {
                 setActiveCommentsPostId(item.id);
               }}
@@ -479,18 +485,27 @@ function PetMini({ petId }: { petId: string }) {
 function PostActions({
   postId,
   userId,
+  ownerUserId,
   onOpenComments,
 }: {
   postId: string;
   userId: string;
+  ownerUserId?: string | null;
   onOpenComments: () => void;
 }) {
   const { data: isLiked, isLoading } = usePostLikeStatus(postId, userId);
   const { data: likeCount } = usePostLikeCount(postId);
   const { data: commentCount } = usePostCommentCount(postId);
+  const canBlock = !!ownerUserId && ownerUserId !== userId;
+  const { data: isBlocked = false } = useBlockStatus(
+    canBlock ? userId : undefined,
+    canBlock ? ownerUserId! : undefined
+  );
   const likeMutation = useLikePost();
   const unlikeMutation = useUnlikePost();
   const reportMutation = useCreatePostReport();
+  const blockMutation = useBlockUser();
+  const unblockMutation = useUnblockUser();
 
   const toggleLike = async () => {
     if (isLoading) return;
@@ -526,9 +541,30 @@ function PostActions({
     }
   };
 
+  const handleBlockToggle = async () => {
+    if (!canBlock || !ownerUserId) return;
+    try {
+      if (isBlocked) {
+        await unblockMutation.mutateAsync({
+          blocker_user_id: userId,
+          blocked_user_id: ownerUserId,
+        });
+        Alert.alert("Usuario desbloqueado", "Volverás a ver su contenido.");
+      } else {
+        await blockMutation.mutateAsync({
+          blocker_user_id: userId,
+          blocked_user_id: ownerUserId,
+        });
+        Alert.alert("Usuario bloqueado", "Ya no verás su contenido ni sus comentarios.");
+      }
+    } catch (error: any) {
+      Alert.alert("No se pudo completar la acción", error?.message ?? "Intenta de nuevo.");
+    }
+  };
+
   const handleReport = () => {
-    if (reportMutation.isPending) return;
-    Alert.alert("Reportar contenido", "Selecciona un motivo", [
+    if (reportMutation.isPending || blockMutation.isPending || unblockMutation.isPending) return;
+    const actions: { text: string; style?: "cancel" | "default" | "destructive"; onPress?: () => void }[] = [
       {
         text: "Spam",
         onPress: () => {
@@ -553,8 +589,20 @@ function PostActions({
           void submitReport("other");
         },
       },
-      { text: "Cancelar", style: "cancel" },
-    ]);
+    ];
+
+    if (canBlock) {
+      actions.push({
+        text: isBlocked ? "Desbloquear usuario" : "Bloquear usuario",
+        style: isBlocked ? "default" : "destructive",
+        onPress: () => {
+          void handleBlockToggle();
+        },
+      });
+    }
+
+    actions.push({ text: "Cancelar", style: "cancel" });
+    Alert.alert("Reportar contenido", "Selecciona un motivo", actions);
   };
 
   return (
