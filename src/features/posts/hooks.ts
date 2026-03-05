@@ -17,7 +17,6 @@ import {
   fetchPostComments,
   createPostComment,
   fetchPostCommentCount,
-  fetchMyMediaQuota,
   fetchProfilesByIds,
 } from "./api";
 
@@ -64,7 +63,6 @@ export function useCreatePetPost() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["posts", "pet", data.pet_id] });
       qc.invalidateQueries({ queryKey: ["posts", "feed"] });
-      qc.invalidateQueries({ queryKey: ["media-quota", "me"] });
     },
   });
 }
@@ -84,7 +82,6 @@ export function useDeletePetPost() {
       if (variables.id) {
         qc.invalidateQueries({ queryKey: ["post", variables.id] });
       }
-      qc.invalidateQueries({ queryKey: ["media-quota", "me"] });
     },
   });
 }
@@ -231,13 +228,5 @@ export function useProfilesByIds(userIds: string[]) {
     queryKey: ["profiles", sortedIds],
     queryFn: () => fetchProfilesByIds(sortedIds),
     enabled: sortedIds.length > 0,
-  });
-}
-
-export function useMyMediaQuota(enabled = true) {
-  return useQuery({
-    queryKey: ["media-quota", "me"],
-    queryFn: fetchMyMediaQuota,
-    enabled,
   });
 }
