@@ -2,7 +2,7 @@ import { useAddPet } from "@/features/pets/hooks";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function CreatePetScreen() {
   const router = useRouter();
@@ -86,15 +86,21 @@ export default function CreatePetScreen() {
 
       <View style={{ height: 16 }} />
 
-      <Button
-        title={isPending ? "Guardando..." : "Guardar mascota"}
+      <Pressable
+        style={[styles.primaryButton, isPending && styles.disabledButton]}
         onPress={handleSave}
         disabled={isPending}
-      />
+      >
+        <Text style={styles.primaryText}>
+          {isPending ? "Guardando..." : "Guardar mascota"}
+        </Text>
+      </Pressable>
 
       <View style={{ height: 8 }} />
 
-      <Button title="Cancelar" onPress={handleCancel} color="#999" />
+      <Pressable style={styles.secondaryButton} onPress={handleCancel}>
+        <Text style={styles.secondaryText}>Cancelar</Text>
+      </Pressable>
     </View>
   );
 }
@@ -108,5 +114,30 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
+  },
+  primaryButton: {
+    backgroundColor: "#111",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  primaryText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  secondaryButton: {
+    backgroundColor: "#ddd",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  secondaryText: {
+    color: "#111",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
 });
