@@ -84,9 +84,6 @@ function getCurrentBuildNumber(): number {
 function ForceUpdateGate() {
   const platform = Platform.OS === "ios" ? "ios" : "android";
   const currentBuild = getCurrentBuildNumber();
-  const nativeBuildRaw = Application.nativeBuildVersion ?? null;
-  const iosConfigBuild = Constants.expoConfig?.ios?.buildNumber ?? null;
-  const androidConfigBuild = Constants.expoConfig?.android?.versionCode ?? null;
 
   const { data: rule } = useQuery({
     queryKey: ["app-version-rule", platform],
@@ -99,27 +96,6 @@ function ForceUpdateGate() {
     !!rule?.force_update &&
     currentBuild > 0 &&
     rule.min_build > currentBuild;
-
-  useEffect(() => {
-    console.log("[force-update] platform:", platform);
-    console.log("[force-update] nativeBuildVersion(raw):", nativeBuildRaw);
-    console.log("[force-update] ios buildNumber (expoConfig):", iosConfigBuild);
-    console.log(
-      "[force-update] android versionCode (expoConfig):",
-      androidConfigBuild
-    );
-    console.log("[force-update] currentBuild(parsed):", currentBuild);
-    console.log("[force-update] rule from db:", rule ?? null);
-    console.log("[force-update] mustUpdate:", mustUpdate);
-  }, [
-    platform,
-    nativeBuildRaw,
-    iosConfigBuild,
-    androidConfigBuild,
-    currentBuild,
-    rule,
-    mustUpdate,
-  ]);
 
   if (!mustUpdate || !rule) return null;
 
