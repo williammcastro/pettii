@@ -104,9 +104,9 @@ const styles = StyleSheet.create({
   link: {
     color: "#0a7ea4",
     fontWeight: "600",
+    paddingTop: 6,
   },
   switchRow: {
-    marginTop: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -121,9 +121,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
     lottie: {
-    width: 350,
-    height: 350,
-    marginBottom: 8,
+    width: 340,
+    height: 340,
   },
   primaryButton: {
     flex: 1,
