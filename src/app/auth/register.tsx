@@ -14,6 +14,9 @@ export default function RegisterScreen() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: "https://pettii.com/verified",
+        },
       });
 
       if (error) {
@@ -21,7 +24,7 @@ export default function RegisterScreen() {
         return;
       }
 
-      Alert.alert('Listo', 'Cuenta creada. Ahora por favor revisa tu email y confirma tu cuenta antes de iniciar sesión.  Si no ves el email, revisa tu carpeta de spam.');
+      Alert.alert('Listo', 'Cuenta creada. Ahora por favor revisa tu email y confirma tu cuenta antes de iniciar sesión.\nSi no ves el email, revisa tu carpeta de spam.');
       router.replace({
         pathname: "/auth/login",
         params: { next: nextPath },
