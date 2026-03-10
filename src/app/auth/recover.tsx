@@ -26,7 +26,7 @@ export default function RecoverPasswordScreen() {
     setIsSubmitting(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: "pettii://auth/recover",
+        redirectTo: "https://pettii.com/recovery",
       });
 
       if (error) {
@@ -57,7 +57,6 @@ export default function RecoverPasswordScreen() {
         <Text style={styles.subtitle}>
           Ingresa tu correo y te enviaremos un enlace para restablecerla.
         </Text>
-
         <TextInput
           style={styles.input}
           placeholder="Email"
