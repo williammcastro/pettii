@@ -174,3 +174,5 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=...
 - Seguir la organización por `features/*` para mantener APIs/hooks desacoplados.
 - Mantener reglas críticas (moderación/reportes/ranking) en backend (migraciones/RPC), no en lógica cliente.
 - Cuando se agreguen columnas o reglas de negocio de feed, documentarlas aquí y en migraciones.
+
+Version nueva 1.1 configurada en app.json
