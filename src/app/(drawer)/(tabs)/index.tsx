@@ -134,8 +134,8 @@ export default function HomeScreen() {
 
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images", "videos"],
-        allowsEditing: false,
-        quality: 0.9,
+        allowsEditing: true,
+        quality: 0.8,
         videoExportPreset: ImagePicker.VideoExportPreset.H264_960x540,
       });
 
