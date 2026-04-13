@@ -38,23 +38,39 @@ En especial, podrá:
 
 PARÁGRAFO. Se entienden comprendidos en el objeto social todos los actos directamente relacionados con el mismo y los que tengan por finalidad ejercer los derechos o cumplir las obligaciones, legales o convencionales, derivados de la existencia y actividad de la sociedad. La sociedad no podrá constituirse como garante de obligaciones de terceros o de sus accionistas sin autorización previa de la Asamblea General de Accionistas.
 
+ARTÍCULO 4A. CUMPLIMIENTO NORMATIVO EN OPERACIONES DIGITALES
+
+Cuando la sociedad opere plataformas web, aplicaciones móviles, servicios SaaS, comercio electrónico, pasarelas de pago, marketplaces o cualquier canal digital de comercialización o prestación de servicios, deberá cumplir la normatividad colombiana vigente y la que la modifique, adicione o sustituya, especialmente en materia de comercio electrónico, protección al consumidor, habeas data, tratamiento de datos personales, propiedad intelectual, mensajes de datos, firmas electrónicas o digitales, publicidad, seguridad de la información, prevención del fraude y obligaciones tributarias.
+
+En desarrollo de lo anterior, la sociedad adoptará los procedimientos internos, tecnológicos, contables, documentales y contractuales que resulten necesarios para atender, entre otros, el cumplimiento de sus deberes ante la DIAN, incluyendo, cuando haya lugar, la facturación electrónica, los documentos equivalentes electrónicos, el documento soporte, la nómina electrónica y los demás documentos o reportes exigidos por la regulación aplicable.
+
 ARTÍCULO 5. CAPITAL SOCIAL
 
-El capital autorizado de la sociedad es la suma de UN MILLÓN DE PESOS M/CTE ($1.000.000), dividido en MIL (1.000) acciones nominativas, ordinarias, de valor nominal de MIL PESOS ($1.000) cada una.
+El capital autorizado de la sociedad es la suma de VEINTE MILLONES DE PESOS M/CTE ($20.000.000), dividido en VEINTE MIL (20.000) acciones nominativas, ordinarias, de valor nominal de MIL PESOS ($1.000) cada una.
 
-El capital suscrito de la sociedad es la suma de QUINIENTOS MIL PESOS M/CTE ($500.000), dividido en QUINIENTAS (500) acciones nominativas, ordinarias, de valor nominal de MIL PESOS ($1.000) cada una, distribuidas así:
+El capital suscrito de la sociedad es la suma de VEINTE MILLONES DE PESOS M/CTE ($20.000.000), dividido en VEINTE MIL (20.000) acciones nominativas, ordinarias, de valor nominal de MIL PESOS ($1.000) cada una, distribuidas así:
 
-William Leandro Moreno Castro: 251 acciones, equivalentes al 50,2% del capital suscrito.
+William Leandro Moreno Castro: 10.040 acciones, equivalentes al 50,2% del capital suscrito.
 
-Milena Morales Montoya: 249 acciones, equivalentes al 49,8% del capital suscrito.
+Milena Morales Montoya: 9.960 acciones, equivalentes al 49,8% del capital suscrito.
 
-Total: 500 acciones, equivalentes al 100% del capital suscrito.
+Total: 20.000 acciones, equivalentes al 100% del capital suscrito.
 
-PARÁGRAFO. CAPITAL PAGADO. A la fecha de constitución, el capital suscrito no ha sido pagado. De conformidad con el artículo 9 de la Ley 1258 de 2008, el capital suscrito será pagado en dinero dentro de los veinticuatro (24) meses siguientes contados desde la fecha de constitución. En consecuencia, el capital pagado inicial es de cero pesos ($0).
+PARÁGRAFO. CAPITAL PAGADO. A la fecha de constitución, el capital suscrito ha sido íntegramente pagado en dinero. En consecuencia, el capital pagado inicial de la sociedad es de VEINTE MILLONES DE PESOS M/CTE ($20.000.000).
 
 ARTÍCULO 6. SUSCRIPCIÓN Y PAGO DE ACCIONES
 
 Toda nueva emisión de acciones se sujetará al correspondiente reglamento de colocación aprobado por el órgano competente, sin que el plazo para el pago de las acciones suscritas exceda de dos (2) años, conforme a la ley.
+
+ARTÍCULO 6A. AUMENTO Y DISMINUCIÓN DEL CAPITAL
+
+El capital autorizado, suscrito y pagado podrá aumentarse o disminuirse por decisión de la Asamblea General de Accionistas, con observancia de la ley y de estos estatutos.
+
+En caso de aumento de capital, la decisión respectiva deberá indicar, por lo menos, el monto del aumento, la clase y número de acciones a emitir, el precio de colocación o la forma de determinarlo, la forma y plazo de pago, y las demás condiciones aplicables. Salvo disposición legal o estatutaria en contrario, los accionistas tendrán derecho de preferencia para suscribir nuevas acciones en proporción a las que posean al momento de la oferta.
+
+La Asamblea General de Accionistas podrá reglamentar la colocación de acciones y, con las mayorías exigidas por la ley, disponer la emisión de acciones con prima, así como restringir o suprimir el derecho de preferencia cuando ello sea legalmente procedente.
+
+La disminución de capital requerirá decisión de la Asamblea General de Accionistas y el cumplimiento de los requisitos legales para la protección de acreedores, cuando haya lugar a ello. Toda disminución deberá quedar reflejada en la correspondiente reforma estatutaria y en los registros contables y mercantiles aplicables.
 
 ARTÍCULO 7. DERECHO DE VOTO
 
@@ -163,6 +179,18 @@ ARTÍCULO 21. FACULTADES DEL REPRESENTANTE LEGAL
 
 El representante legal tendrá a su cargo la administración inmediata de la sociedad y podrá celebrar y ejecutar todos los actos y contratos comprendidos dentro del objeto social o que se relacionen directamente con la existencia y funcionamiento de la compañía, sin limitación de cuantía.
 
+En especial, el representante legal estará facultado para:
+
+1. Representar judicial y extrajudicialmente a la sociedad ante toda clase de autoridades, entidades públicas y privadas, clientes, proveedores, aliados, inversionistas y terceros.
+2. Ejecutar y suscribir contratos, ofertas, cotizaciones, propuestas, licencias, términos y condiciones, políticas corporativas, acuerdos de confidencialidad, contratos laborales, comerciales, civiles, tecnológicos y de prestación de servicios.
+3. Abrir, manejar, movilizar y cerrar cuentas bancarias, depósitos, productos financieros y servicios de recaudo; girar, endosar, aceptar, cobrar, protestar, cancelar y negociar títulos valores; solicitar créditos, cupos, tarjetas empresariales, servicios financieros y medios de pago.
+4. Realizar pagos, transferencias, recaudos, conciliaciones, instrucciones de tesorería y demás operaciones ordinarias o extraordinarias necesarias para la gestión financiera de la sociedad.
+5. Vincular, nombrar, contratar, fijar funciones, remuneraciones, comisiones u honorarios, delegar responsabilidades y remover trabajadores, contratistas, asesores, apoderados y proveedores.
+6. Comparecer ante la DIAN, UGPP, entidades territoriales, autoridades regulatorias y demás organismos administrativos; adelantar trámites tributarios, societarios, cambiarios, laborales y de seguridad social; obtener o actualizar RUT, firma electrónica, habilitaciones, registros y autorizaciones.
+7. Implementar y administrar sistemas de facturación electrónica, nómina electrónica, firma electrónica o digital, y plataformas tecnológicas necesarias para el cumplimiento normativo y operativo de la sociedad.
+8. Registrar, solicitar, licenciar, ceder, adquirir, defender y explotar derechos de propiedad intelectual e industrial de la sociedad, incluyendo software, marcas, nombres de dominio, diseños, secretos empresariales, bases de datos y demás activos intangibles.
+9. Otorgar poderes generales o especiales para asuntos judiciales, administrativos o contractuales, con facultad de revocarlos.
+
 No obstante, requerirá autorización previa de la Asamblea General de Accionistas para:
 
 1. Constituir a la sociedad como garante de obligaciones de terceros o de los accionistas.
@@ -177,6 +205,14 @@ ARTÍCULO 23. REVISORÍA FISCAL
 La sociedad tendrá revisor fiscal únicamente en los casos en que la ley lo exija o cuando así lo disponga voluntariamente la Asamblea General de Accionistas.
 
 Cuando se designe revisor fiscal, este deberá ser contador público con tarjeta profesional vigente y ejercerá las funciones previstas en la ley.
+
+ARTÍCULO 23A. PROPIEDAD INTELECTUAL, SOFTWARE Y ACTIVOS INTANGIBLES
+
+Los desarrollos tecnológicos, software, código fuente, código objeto, algoritmos, modelos, bases de datos, interfaces, documentación técnica, manuales, contenidos, diseños, marcas, nombres de dominio, secretos empresariales y demás activos intangibles creados, adquiridos, licenciados o explotados por la sociedad harán parte de su patrimonio, salvo pacto legal o contractual válido en contrario.
+
+La sociedad podrá registrar, depositar, licenciar, sublicenciar, ceder, adquirir, proteger, explotar, monetizar y defender sus activos de propiedad intelectual e industrial en Colombia o en el exterior, y establecer políticas internas para la gestión de titularidad, confidencialidad, cesión de derechos, uso de software de terceros, software libre o de código abierto, control de accesos, protección de secretos empresariales y cumplimiento de obligaciones contractuales y regulatorias.
+
+Cuando la naturaleza del desarrollo lo permita, la sociedad podrá adelantar trámites de registro de soporte lógico, derechos de autor, marcas, nombres de dominio, diseños industriales, patentes, modelos de utilidad y demás mecanismos de protección aplicables. En todo caso, se entenderá que los programas de computador, como tales, se protegen principalmente por el régimen de derecho de autor, sin perjuicio de otros mecanismos de protección legalmente procedentes para activos complementarios o desarrollos patentables cuando aplique.
 
 ARTÍCULO 24. DISOLUCIÓN
 
