@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   createPostWithMedia,
   createPostReport,
@@ -44,14 +49,20 @@ export function usePublicFeedPosts() {
 }
 
 export function useRankedFeedPosts(followerPetId?: string) {
-  return useQuery({
+  const limit = 30;
+
+  return useInfiniteQuery({
     queryKey: ["posts", "feed", "ranked", followerPetId ?? null],
-    queryFn: () =>
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
       fetchRankedFeedPosts({
         follower_pet_id: followerPetId ?? null,
-        limit: 30,
-        offset: 0,
+        limit,
+        offset: pageParam,
       }),
+    getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+      lastPage.length === 0 ? undefined : lastPageParam + limit,
+    staleTime: 60_000,
   });
 }
 

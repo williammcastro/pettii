@@ -48,12 +48,22 @@ export default function SocialScreen() {
   const [onboardingDone, setOnboardingDone] = useState(false);
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const selectedPetId = usePetSelectionStore((s) => s.selectedPetId);
-  const { data: posts, isLoading } = useRankedFeedPosts(selectedPetId ?? undefined);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useRankedFeedPosts(selectedPetId ?? undefined);
   const followMutation = useFollowPet();
   const unfollowMutation = useUnfollowPet();
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
   const [activeCommentsPostId, setActiveCommentsPostId] = useState<string | null>(null);
   const isFocused = useIsFocused();
+  const posts = useMemo(
+    () => data?.pages.flatMap((page) => page) ?? [],
+    [data]
+  );
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: { item: any }[] }) => {
@@ -127,12 +137,28 @@ export default function SocialScreen() {
       )}
 
       <FlatList
-        data={posts ?? []}
+        data={posts}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        ListHeaderComponent={<RecommendedHeader posts={posts ?? []} />}
+        onEndReached={() => {
+          if (!hasNextPage || isFetchingNextPage) return;
+          void fetchNextPage();
+        }}
+        onEndReachedThreshold={0.6}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS === "android"}
+        ListHeaderComponent={<RecommendedHeader posts={posts} />}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={{ paddingVertical: 16 }}>
+              <ActivityIndicator />
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => (
           <View
             style={{
@@ -164,7 +190,7 @@ export default function SocialScreen() {
                 source={{ uri: item.media_url }}
                 style={{ width: "100%", aspectRatio: 9 / 16 }}
                 contentFit="cover"
-                cachePolicy="memory"
+                cachePolicy="memory-disk"
               />
             ) : item.media_type === "video" && item.media_url ? (
               <FeedVideo
