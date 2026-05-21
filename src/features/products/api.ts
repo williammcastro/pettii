@@ -45,23 +45,13 @@ async function attachSignedProductUrls(products: Product[]): Promise<Product[]> 
   });
 }
 
-export async function fetchProductsForPrimaryClinic(
-  userId: string
+export async function fetchProductsByClinicId(
+  clinicId: string
 ): Promise<Product[]> {
-  const { data: primary, error: primaryError } = await supabase
-    .from("user_clinics")
-    .select("clinic_id")
-    .eq("user_id", userId)
-    .eq("is_primary", true)
-    .maybeSingle();
-
-  if (primaryError) throw primaryError;
-  if (!primary?.clinic_id) return [];
-
   const { data, error } = await supabase
     .from("products")
     .select("*")
-    .eq("clinic_id", primary.clinic_id)
+    .eq("clinic_id", clinicId)
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 

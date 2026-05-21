@@ -1,6 +1,6 @@
 // src/app/(tabs)/index.tsx
 import { usePrimaryClinic } from "@/features/clinics/hooks";
-import { useProductsForPrimaryClinic } from "@/features/products/hooks";
+import { useProductsByClinicId } from "@/features/products/hooks";
 import {
   getCachedClinicLogoUrl,
   setCachedClinicLogoUrl,
@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -85,7 +86,7 @@ export default function ShopScreen() {
     isLoading: isProductsLoading,
     error: productsError,
     refetch: refetchProducts,
-  } = useProductsForPrimaryClinic(userId, hasPrimaryClinic);
+  } = useProductsByClinicId(primaryClinic?.id, hasPrimaryClinic);
   const filteredProducts = useMemo(() => {
     const productList = products ?? [];
     if (selectedCategory === "Todos") return productList;
@@ -377,6 +378,10 @@ export default function ShopScreen() {
           numColumns={3}
           columnWrapperStyle={styles.gridRow}
           contentContainerStyle={styles.gridContent}
+          initialNumToRender={9}
+          maxToRenderPerBatch={9}
+          windowSize={7}
+          removeClippedSubviews={Platform.OS === "android"}
           refreshControl={
             <RefreshControl
               refreshing={isClinicLoading || isProductsLoading}
@@ -394,6 +399,7 @@ export default function ShopScreen() {
                       source={{ uri: item.image_signed_url ?? item.image_url ?? "" }}
                       style={styles.productImage}
                       contentFit="cover"
+                      cachePolicy="memory-disk"
                     />
                   ) : (
                     <View style={styles.productImagePlaceholder} />

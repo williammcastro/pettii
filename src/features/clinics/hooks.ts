@@ -17,6 +17,7 @@ export function useJoinClinicByCode(userId?: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clinics", "primary", userId] });
       qc.invalidateQueries({ queryKey: ["products", "primary", userId] });
+      qc.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }
