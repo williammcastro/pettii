@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Post, PostWithMedia } from "@/types/post";
+import { Post, PostWithMedia, RankedFeedPost } from "@/types/post";
 import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system/legacy";
 
@@ -37,6 +37,54 @@ async function attachSignedUrls(posts: Post[]): Promise<PostWithMedia[]> {
   return posts.map((post) => ({
     ...post,
     media_url: urlByPath.get(post.storage_path) ?? null,
+  }));
+}
+
+async function attachSignedUrlsToRankedFeed(
+  posts: RankedFeedPost[]
+): Promise<RankedFeedPost[]> {
+  if (posts.length === 0) return [];
+
+  const bucket = posts[0].storage_bucket ?? "pet_media";
+  const paths = new Set<string>();
+
+  for (const post of posts) {
+    paths.add(post.storage_path);
+    if (post.pet_avatar_url && !post.pet_avatar_url.startsWith("http")) {
+      paths.add(post.pet_avatar_url);
+    }
+  }
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrls(Array.from(paths), 60 * 60);
+
+  if (error) {
+    return posts.map((post) => ({
+      ...post,
+      media_url: null,
+      pet_avatar_signed_url: post.pet_avatar_url?.startsWith("http")
+        ? post.pet_avatar_url
+        : null,
+    }));
+  }
+
+  const urlByPath = new Map<string, string>();
+  for (const item of data ?? []) {
+    if (item.path && item.signedUrl) {
+      urlByPath.set(item.path, item.signedUrl);
+    }
+  }
+
+  return posts.map((post) => ({
+    ...post,
+    media_url: urlByPath.get(post.storage_path) ?? null,
+    pet_avatar_signed_url:
+      post.pet_avatar_url == null
+        ? null
+        : post.pet_avatar_url.startsWith("http")
+          ? post.pet_avatar_url
+          : urlByPath.get(post.pet_avatar_url) ?? null,
   }));
 }
 
@@ -96,8 +144,8 @@ export async function fetchRankedFeedPosts(input?: {
   follower_pet_id?: string | null;
   limit?: number;
   offset?: number;
-}): Promise<PostWithMedia[]> {
-  const { data, error } = await supabase.rpc("fetch_ranked_feed", {
+}): Promise<RankedFeedPost[]> {
+  const { data, error } = await supabase.rpc("fetch_ranked_feed_v2", {
     p_follower_pet_id: input?.follower_pet_id ?? null,
     p_limit: input?.limit ?? 30,
     p_offset: input?.offset ?? 0,
@@ -105,7 +153,7 @@ export async function fetchRankedFeedPosts(input?: {
 
   if (error) throw error;
 
-  return attachSignedUrls((data ?? []) as Post[]);
+  return attachSignedUrlsToRankedFeed((data ?? []) as RankedFeedPost[]);
 }
 
 export async function createPostWithMedia(input: {

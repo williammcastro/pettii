@@ -166,6 +166,7 @@ export function useLikePost() {
         queryKey: ["post-like", variables.post_id, variables.user_id],
       });
       qc.invalidateQueries({ queryKey: ["post-like-count", variables.post_id] });
+      qc.invalidateQueries({ queryKey: ["posts", "feed"] });
     },
   });
 }
@@ -180,6 +181,7 @@ export function useUnlikePost() {
         queryKey: ["post-like", variables.post_id, variables.user_id],
       });
       qc.invalidateQueries({ queryKey: ["post-like-count", variables.post_id] });
+      qc.invalidateQueries({ queryKey: ["posts", "feed"] });
     },
   });
 }
@@ -210,6 +212,7 @@ export function useCreatePostComment() {
       qc.invalidateQueries({
         queryKey: ["post-comment-count", variables.post_id],
       });
+      qc.invalidateQueries({ queryKey: ["posts", "feed"] });
     },
   });
 }

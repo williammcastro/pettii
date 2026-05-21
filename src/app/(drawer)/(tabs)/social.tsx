@@ -1,20 +1,12 @@
-// src/app/(tabs)/index.tsx
-import { usePetById } from "@/features/pets/hooks";
 import {
-  useBlockStatus,
   useBlockUser,
-  useUnblockUser,
 } from "@/features/blocks/hooks";
 import {
   useCreatePostComment,
   useCreatePostReport,
   useFollowPet,
-  useFollowStatus,
   useLikePost,
-  usePostCommentCount,
   usePostComments,
-  usePostLikeCount,
-  usePostLikeStatus,
   useProfilesByIds,
   useRankedFeedPosts,
   useUnfollowPet,
@@ -169,6 +161,9 @@ export default function SocialScreen() {
           >
             <PetHeader
               petId={item.pet_id}
+              petName={item.pet_name ?? "Mascota"}
+              petAvatarUrl={item.pet_avatar_signed_url ?? item.pet_avatar_url ?? null}
+              isFollowing={item.is_following}
               followerPetId={selectedPetId}
               onFollow={async (followedId) => {
                 if (!selectedPetId) return;
@@ -215,6 +210,9 @@ export default function SocialScreen() {
               postId={item.id}
               userId={user.id}
               ownerUserId={item.owner_user_id ?? null}
+              isLiked={item.is_liked}
+              likeCount={item.likes_count}
+              commentCount={item.comments_count}
               onOpenComments={() => {
                 setActiveCommentsPostId(item.id);
               }}
@@ -313,21 +311,21 @@ function FeedVideo({
 
 function PetHeader({
   petId,
+  petName,
+  petAvatarUrl,
+  isFollowing,
   followerPetId,
   onFollow,
   onUnfollow,
 }: {
   petId: string;
+  petName: string;
+  petAvatarUrl?: string | null;
+  isFollowing: boolean;
   followerPetId?: string | null;
   onFollow: (petId: string) => Promise<void>;
   onUnfollow: (petId: string) => Promise<void>;
 }) {
-  const { data: pet } = usePetById(petId);
-  const { data: isFollowing, isLoading } = useFollowStatus(
-    followerPetId ?? undefined,
-    petId
-  );
-
   const showActions = !!followerPetId && followerPetId !== petId;
 
   return (
@@ -346,16 +344,9 @@ function PetHeader({
         onPress={() => router.push(`/pet/${petId}`)}
         style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
       >
-        {pet?.avatar_signed_url ||
-        (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null) ? (
+        {petAvatarUrl ? (
           <Image
-            source={{
-              uri:
-                pet?.avatar_signed_url ??
-                (pet?.avatar_url?.startsWith("http")
-                  ? pet.avatar_url
-                  : ""),
-            }}
+            source={{ uri: petAvatarUrl }}
             style={{
               width: 32,
               height: 32,
@@ -381,9 +372,9 @@ function PetHeader({
             </Text>
           </View>
         )}
-        <Text style={{ fontWeight: "600" }}>{pet?.name ?? "Mascota"}</Text>
+        <Text style={{ fontWeight: "600" }}>{petName}</Text>
       </Pressable>
-      {showActions && !isLoading && (
+      {showActions && (
         <Pressable
           onPress={() =>
             isFollowing ? onUnfollow(petId) : onFollow(petId)
@@ -412,10 +403,27 @@ function PetHeader({
 function RecommendedHeader({
   posts,
 }: {
-  posts: { pet_id: string }[];
+  posts: {
+    pet_id: string;
+    pet_name?: string | null;
+    pet_avatar_url?: string | null;
+    pet_avatar_signed_url?: string | null;
+  }[];
 }) {
-  const petIds = useMemo(() => {
-    const unique = Array.from(new Set(posts.map((post) => post.pet_id)));
+  const pets = useMemo(() => {
+    const unique = Array.from(
+      new Map(
+        posts.map((post) => [
+          post.pet_id,
+          {
+            petId: post.pet_id,
+            petName: post.pet_name ?? "Mascota",
+            petAvatarUrl:
+              post.pet_avatar_signed_url ?? post.pet_avatar_url ?? null,
+          },
+        ])
+      ).values()
+    );
     for (let i = unique.length - 1; i > 0; i -= 1) {
       const j = Math.floor(Math.random() * (i + 1));
       [unique[i], unique[j]] = [unique[j], unique[i]];
@@ -443,8 +451,8 @@ function RecommendedHeader({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 12, paddingRight: 10 }}
         >
-          {petIds.map((petId) => (
-            <PetMini key={petId} petId={petId} />
+          {pets.map((pet) => (
+            <PetMini key={pet.petId} {...pet} />
           ))}
         </ScrollView>
       </View>
@@ -459,20 +467,23 @@ function RecommendedHeader({
   );
 }
 
-function PetMini({ petId }: { petId: string }) {
-  const { data: pet } = usePetById(petId);
-  const avatarUrl =
-    pet?.avatar_signed_url ??
-    (pet?.avatar_url?.startsWith("http") ? pet.avatar_url : null);
-
+function PetMini({
+  petId,
+  petName,
+  petAvatarUrl,
+}: {
+  petId: string;
+  petName: string;
+  petAvatarUrl?: string | null;
+}) {
   return (
     <Pressable
       onPress={() => router.push(`/pet/${petId}`)}
       style={{ alignItems: "center", maxWidth: 64 }}
     >
-      {avatarUrl ? (
+      {petAvatarUrl ? (
         <Image
-          source={{ uri: avatarUrl }}
+          source={{ uri: petAvatarUrl }}
           style={{
             width: 42,
             height: 42,
@@ -502,7 +513,7 @@ function PetMini({ petId }: { petId: string }) {
         style={{ fontSize: 11, marginTop: 4, color: "#111" }}
         numberOfLines={1}
       >
-        {pet?.name ?? "Mascota"}
+        {petName}
       </Text>
     </Pressable>
   );
@@ -512,33 +523,49 @@ function PostActions({
   postId,
   userId,
   ownerUserId,
+  isLiked,
+  likeCount,
+  commentCount,
   onOpenComments,
 }: {
   postId: string;
   userId: string;
   ownerUserId?: string | null;
+  isLiked: boolean;
+  likeCount: number;
+  commentCount: number;
   onOpenComments: () => void;
 }) {
-  const { data: isLiked, isLoading } = usePostLikeStatus(postId, userId);
-  const { data: likeCount } = usePostLikeCount(postId);
-  const { data: commentCount } = usePostCommentCount(postId);
   const canBlock = !!ownerUserId && ownerUserId !== userId;
-  const { data: isBlocked = false } = useBlockStatus(
-    canBlock ? userId : undefined,
-    canBlock ? ownerUserId! : undefined
-  );
   const likeMutation = useLikePost();
   const unlikeMutation = useUnlikePost();
   const reportMutation = useCreatePostReport();
   const blockMutation = useBlockUser();
-  const unblockMutation = useUnblockUser();
+  const [liked, setLiked] = useState(isLiked);
+  const [likes, setLikes] = useState(likeCount);
+
+  useEffect(() => {
+    setLiked(isLiked);
+  }, [isLiked]);
+
+  useEffect(() => {
+    setLikes(likeCount);
+  }, [likeCount]);
 
   const toggleLike = async () => {
-    if (isLoading) return;
-    if (isLiked) {
-      await unlikeMutation.mutateAsync({ post_id: postId, user_id: userId });
-    } else {
-      await likeMutation.mutateAsync({ post_id: postId, user_id: userId });
+    if (likeMutation.isPending || unlikeMutation.isPending) return;
+    const nextLiked = !liked;
+    setLiked(nextLiked);
+    setLikes((current) => Math.max(0, current + (nextLiked ? 1 : -1)));
+    try {
+      if (liked) {
+        await unlikeMutation.mutateAsync({ post_id: postId, user_id: userId });
+      } else {
+        await likeMutation.mutateAsync({ post_id: postId, user_id: userId });
+      }
+    } catch {
+      setLiked(liked);
+      setLikes(likeCount);
     }
   };
 
@@ -570,26 +597,18 @@ function PostActions({
   const handleBlockToggle = async () => {
     if (!canBlock || !ownerUserId) return;
     try {
-      if (isBlocked) {
-        await unblockMutation.mutateAsync({
-          blocker_user_id: userId,
-          blocked_user_id: ownerUserId,
-        });
-        Alert.alert("Usuario desbloqueado", "Volverás a ver su contenido.");
-      } else {
-        await blockMutation.mutateAsync({
-          blocker_user_id: userId,
-          blocked_user_id: ownerUserId,
-        });
-        Alert.alert("Usuario bloqueado", "Ya no verás su contenido ni sus comentarios.");
-      }
+      await blockMutation.mutateAsync({
+        blocker_user_id: userId,
+        blocked_user_id: ownerUserId,
+      });
+      Alert.alert("Usuario bloqueado", "Ya no verás su contenido ni sus comentarios.");
     } catch (error: any) {
       Alert.alert("No se pudo completar la acción", error?.message ?? "Intenta de nuevo.");
     }
   };
 
   const handleReport = () => {
-    if (reportMutation.isPending || blockMutation.isPending || unblockMutation.isPending) return;
+    if (reportMutation.isPending || blockMutation.isPending) return;
     const actions: { text: string; style?: "cancel" | "default" | "destructive"; onPress?: () => void }[] = [
       {
         text: "Spam",
@@ -619,8 +638,8 @@ function PostActions({
 
     if (canBlock) {
       actions.push({
-        text: isBlocked ? "Desbloquear usuario" : "Bloquear usuario",
-        style: isBlocked ? "default" : "destructive",
+        text: "Bloquear usuario",
+        style: "destructive",
         onPress: () => {
           void handleBlockToggle();
         },
@@ -642,16 +661,16 @@ function PostActions({
         <View style={{ flexDirection: "row", gap: 16 }}>
           <Pressable
             onPress={toggleLike}
-            disabled={isLoading || likeMutation.isPending || unlikeMutation.isPending}
+            disabled={likeMutation.isPending || unlikeMutation.isPending}
             style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
           >
             <MaterialCommunityIcons
-              name={isLiked ? "heart" : "heart-outline"}
+              name={liked ? "heart" : "heart-outline"}
               size={24}
-              color={isLiked ? "#000" : "#333"}
+              color={liked ? "#000" : "#333"}
             />
             <Text style={{ color: "#333", fontWeight: "600" }}>
-              {likeCount ?? 0}
+              {likes}
             </Text>
           </Pressable>
           <Pressable
@@ -660,7 +679,7 @@ function PostActions({
           >
             <MaterialCommunityIcons name="comment-outline" size={24} color="#333" />
             <Text style={{ color: "#333", fontWeight: "600" }}>
-              {commentCount ?? 0}
+              {commentCount}
             </Text>
           </Pressable>
         </View>
