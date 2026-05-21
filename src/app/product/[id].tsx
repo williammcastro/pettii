@@ -57,6 +57,7 @@ export default function ProductDetailModal() {
               source={{ uri: product.image_signed_url ?? product.image_url ?? "" }}
               style={styles.image}
               contentFit="cover"
+              cachePolicy="memory-disk"
               onLoadStart={() => setImageLoading(true)}
               onLoadEnd={() => setImageLoading(false)}
             />
