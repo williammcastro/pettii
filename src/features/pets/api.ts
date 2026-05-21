@@ -173,6 +173,30 @@ export async function fetchPetStats(petId: string): Promise<{
   };
 }
 
+export async function fetchPetFollowStats(petId: string): Promise<{
+  followers: number;
+  following: number;
+}> {
+  const { count: followingCount, error: followingError } = await supabase
+    .from("pet_follows")
+    .select("follower_pet_id", { count: "exact", head: true })
+    .eq("follower_pet_id", petId);
+
+  if (followingError) throw followingError;
+
+  const { count: followersCount, error: followersError } = await supabase
+    .from("pet_follows")
+    .select("followed_pet_id", { count: "exact", head: true })
+    .eq("followed_pet_id", petId);
+
+  if (followersError) throw followersError;
+
+  return {
+    followers: followersCount ?? 0,
+    following: followingCount ?? 0,
+  };
+}
+
 export type PetReminder = {
   id: string;
   pet_id: string;

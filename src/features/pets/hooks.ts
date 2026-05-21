@@ -3,6 +3,7 @@ import {
   addPet,
   createPetReminder,
   deletePetReminder,
+  fetchPetFollowStats,
   fetchPetById,
   fetchPetReminders,
   fetchPetsByUser,
@@ -16,6 +17,7 @@ export function usePets(userId?: string, enabled: boolean = true) {
     queryKey: ["pets", userId],
     queryFn: () => fetchPetsByUser(userId!),
     enabled: !!userId && enabled,
+    staleTime: 60_000,
   });
 }
 
@@ -35,6 +37,7 @@ export function usePetById(petId?: string) {
     queryKey: ["pets", "by-id", petId],
     queryFn: () => fetchPetById(petId!),
     enabled: !!petId,
+    staleTime: 60_000,
   });
 }
 
@@ -43,6 +46,16 @@ export function usePetStats(petId?: string) {
     queryKey: ["pets", "stats", petId],
     queryFn: () => fetchPetStats(petId!),
     enabled: !!petId,
+    staleTime: 30_000,
+  });
+}
+
+export function usePetFollowStats(petId?: string) {
+  return useQuery({
+    queryKey: ["pets", "follow-stats", petId],
+    queryFn: () => fetchPetFollowStats(petId!),
+    enabled: !!petId,
+    staleTime: 30_000,
   });
 }
 
@@ -51,6 +64,7 @@ export function usePetReminders(petId?: string) {
     queryKey: ["pets", "reminders", petId],
     queryFn: () => fetchPetReminders(petId!),
     enabled: !!petId,
+    staleTime: 30_000,
   });
 }
 

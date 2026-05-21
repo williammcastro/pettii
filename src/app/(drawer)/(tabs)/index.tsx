@@ -1,4 +1,4 @@
-import { usePets, usePetStats } from "@/features/pets/hooks";
+import { usePetFollowStats, usePets } from "@/features/pets/hooks";
 import { useCreatePetPost, useDeletePetPost, usePetPosts } from "@/features/posts/hooks";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/store/auth";
@@ -19,6 +19,7 @@ import {
   Alert,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -77,7 +78,7 @@ export default function HomeScreen() {
   const { data: pets, isLoading } = usePets(userId, !loading);
   const safePets = useMemo(() => pets ?? [], [pets]);
   const selectedPet = safePets.find((pet) => pet.id === selectedPetId);
-  const { data: petStats } = usePetStats(selectedPet?.id);
+  const { data: petFollowStats } = usePetFollowStats(selectedPet?.id);
 
 
   useEffect(() => {
@@ -277,18 +278,18 @@ export default function HomeScreen() {
               </Text>
               <View style={styles.profileStatsRow}>
                 <View style={styles.profileStat}>
-                  <Text style={styles.profileStatValue}>{petStats?.posts ?? 0}</Text>
+                  <Text style={styles.profileStatValue}>{posts?.length ?? 0}</Text>
                   <Text style={styles.profileStatLabel}>Publicaciones</Text>
                 </View>
                 <View style={styles.profileStat}>
                   <Text style={styles.profileStatValue}>
-                    {petStats?.followers ?? 0}
+                    {petFollowStats?.followers ?? 0}
                   </Text>
                   <Text style={styles.profileStatLabel}>Seguidores</Text>
                 </View>
                 <View style={styles.profileStat}>
                   <Text style={styles.profileStatValue}>
-                    {petStats?.following ?? 0}
+                    {petFollowStats?.following ?? 0}
                   </Text>
                   <Text style={styles.profileStatLabel}>Siguiendo</Text>
                 </View>
@@ -359,10 +360,15 @@ export default function HomeScreen() {
         numColumns={3}
         columnWrapperStyle={styles.galleryRow}
         contentContainerStyle={styles.galleryContent}
+        initialNumToRender={9}
+        maxToRenderPerBatch={9}
+        windowSize={7}
+        removeClippedSubviews={Platform.OS === "android"}
         renderItem={({ item }) => (
           <View style={styles.galleryTile}>
             {item.media_type === "image" && item.media_url ? (
               <CachedMediaImage
+                cacheKey={item.storage_path}
                 mediaUrl={item.media_url}
                 cache={imageCache}
                 setCache={setImageCache}
@@ -371,6 +377,7 @@ export default function HomeScreen() {
             ) : item.media_type === "video" ? (
               <VideoThumbnail
                 postId={item.id}
+                cacheKey={item.storage_path}
                 mediaUrl={item.media_url ?? undefined}
                 thumbs={thumbs}
                 setThumbs={setThumbs}
@@ -555,12 +562,14 @@ const styles = StyleSheet.create({
 
 function VideoThumbnail({
   postId,
+  cacheKey,
   mediaUrl,
   thumbs,
   setThumbs,
   onPress,
 }: {
   postId: string;
+  cacheKey: string;
   mediaUrl?: string;
   thumbs: Record<string, string>;
   setThumbs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -572,7 +581,7 @@ function VideoThumbnail({
     async function loadThumbnail() {
       if (!mediaUrl || thumbs[postId]) return;
       try {
-        const cachedUri = await getCachedThumbnail(mediaUrl);
+        const cachedUri = await getCachedThumbnail(cacheKey);
         if (cachedUri) {
           if (active) {
             setThumbs((prev) => ({ ...prev, [postId]: cachedUri }));
@@ -583,7 +592,7 @@ function VideoThumbnail({
         const { uri } = await VideoThumbnails.getThumbnailAsync(mediaUrl, {
           time: 1000,
         });
-        const storedUri = await storeThumbnail(mediaUrl, uri);
+        const storedUri = await storeThumbnail(cacheKey, uri);
         if (active) {
           setThumbs((prev) => ({
             ...prev,
@@ -602,7 +611,7 @@ function VideoThumbnail({
     return () => {
       active = false;
     };
-  }, [mediaUrl, postId, setThumbs, thumbs]);
+  }, [cacheKey, mediaUrl, postId, setThumbs, thumbs]);
 
   const uri = thumbs[postId];
 
@@ -656,11 +665,13 @@ function VideoThumbnail({
 }
 
 function CachedMediaImage({
+  cacheKey,
   mediaUrl,
   cache,
   setCache,
   onPress,
 }: {
+  cacheKey: string;
   mediaUrl: string;
   cache: Record<string, string>;
   setCache: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -671,7 +682,7 @@ function CachedMediaImage({
 
     async function loadImage() {
       if (cache[mediaUrl]) return;
-      const cachedUri = await getCachedMedia(mediaUrl);
+      const cachedUri = await getCachedMedia(cacheKey, mediaUrl);
       if (cachedUri) {
         if (active) {
           setCache((prev) => ({ ...prev, [mediaUrl]: cachedUri }));
@@ -680,7 +691,7 @@ function CachedMediaImage({
       }
 
       try {
-        const storedUri = await storeMedia(mediaUrl);
+        const storedUri = await storeMedia(cacheKey, mediaUrl);
         if (active) {
           setCache((prev) => ({
             ...prev,
@@ -699,7 +710,7 @@ function CachedMediaImage({
     return () => {
       active = false;
     };
-  }, [cache, mediaUrl, setCache]);
+  }, [cache, cacheKey, mediaUrl, setCache]);
 
   const uri = cache[mediaUrl] ?? mediaUrl;
 
@@ -735,9 +746,9 @@ function getFileExtensionFromUrl(url: string) {
   return match ? `.${match[1]}` : ".img";
 }
 
-async function getCachedThumbnail(mediaUrl: string) {
+async function getCachedThumbnail(cacheKey: string) {
   const cacheDir = `${FileSystem.cacheDirectory}pet-thumbs/`;
-  const fileName = `${hashString(mediaUrl)}.jpg`;
+  const fileName = `${hashString(cacheKey)}.jpg`;
   const fileUri = `${cacheDir}${fileName}`;
 
   const info = await FileSystem.getInfoAsync(fileUri);
@@ -748,9 +759,9 @@ async function getCachedThumbnail(mediaUrl: string) {
   return null;
 }
 
-async function storeThumbnail(mediaUrl: string, sourceUri: string) {
+async function storeThumbnail(cacheKey: string, sourceUri: string) {
   const cacheDir = `${FileSystem.cacheDirectory}pet-thumbs/`;
-  const fileName = `${hashString(mediaUrl)}.jpg`;
+  const fileName = `${hashString(cacheKey)}.jpg`;
   const fileUri = `${cacheDir}${fileName}`;
 
   try {
@@ -765,9 +776,9 @@ async function storeThumbnail(mediaUrl: string, sourceUri: string) {
   }
 }
 
-async function getCachedMedia(mediaUrl: string) {
+async function getCachedMedia(cacheKey: string, mediaUrl: string) {
   const cacheDir = `${FileSystem.cacheDirectory}pet-media/`;
-  const fileName = `${hashString(mediaUrl)}${getFileExtensionFromUrl(mediaUrl)}`;
+  const fileName = `${hashString(cacheKey)}${getFileExtensionFromUrl(mediaUrl)}`;
   const fileUri = `${cacheDir}${fileName}`;
 
   const info = await FileSystem.getInfoAsync(fileUri);
@@ -778,9 +789,9 @@ async function getCachedMedia(mediaUrl: string) {
   return null;
 }
 
-async function storeMedia(mediaUrl: string) {
+async function storeMedia(cacheKey: string, mediaUrl: string) {
   const cacheDir = `${FileSystem.cacheDirectory}pet-media/`;
-  const fileName = `${hashString(mediaUrl)}${getFileExtensionFromUrl(mediaUrl)}`;
+  const fileName = `${hashString(cacheKey)}${getFileExtensionFromUrl(mediaUrl)}`;
   const fileUri = `${cacheDir}${fileName}`;
 
   await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
@@ -888,6 +899,7 @@ function ImageModal({
             source={{ uri: url }}
             style={{ width: "100%", height: "100%" }}
             contentFit="contain"
+            cachePolicy="memory-disk"
           />
         ) : (
           <View

@@ -30,6 +30,7 @@ export function usePetPosts(petId?: string) {
     queryKey: ["posts", "pet", petId],
     queryFn: () => fetchPostsByPet(petId!),
     enabled: !!petId,
+    staleTime: 60_000,
   });
 }
 
